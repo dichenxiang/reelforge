@@ -127,7 +127,27 @@ dsh plugin --profile headless add dsh-connect-workbuddy
 
 然后调用时传 `provider="workbuddy"` / `"workbuddy-global"`。
 
-### 4.5 DeepSeek Harness 开团队
+### 4.5 AgentTeams 与沙箱（并行开发必读）
+
+```bash
+python skills/reelforge/scripts/dsh_teams.py --status
+```
+
+| profile | 说明 |
+|---|---|
+| `desktop` | 桌面端一般自带，界面里能用 `/agent-teams` |
+| `headless` | **MCP 走这个**，默认没有插件 → 章节并行会静默退化成顺序 |
+| `web` | 浏览器 UI profile，可选 |
+
+装：`python skills/reelforge/scripts/dsh_teams.py --install headless`（装完重启 Harness 进程）。
+
+两个硬约束：
+
+1. headless **没有 UI**，建团队必须 `approval="automatic"`，否则卡在审批面板
+2. headless 沙箱是 **workspace-write**，只允许写**会话工作区（= 任务 cwd）**，
+   所以任务必须在项目目录下启动，否则写工程文件被拒
+
+### 4.6 DeepSeek Harness 开团队
 
 ```bash
 # 桌面端：Plugins → Add plugin → github:NanmiCoder/dsh-agent-teams
@@ -138,7 +158,7 @@ dsh plugin --profile web add --save-exact @nanmicoder/dsh-agent-teams@0.1.27
 装完重启 Harness。执行 skill 的任务包会以 `/agent-teams ` 开头，
 第 2..N 章并行；没装就退化为顺序，不影响出片。
 
-### 4.6 配置
+### 4.7 配置
 
 | 文件 | 改什么 |
 |---|---|

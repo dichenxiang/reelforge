@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.parse
+import time
 import urllib.request
 import uuid
 from pathlib import Path
@@ -53,6 +54,7 @@ def synth_wav(base: str, text: str, ref_bytes: bytes) -> bytes:
         },
     )
     wav_url = None
+    last_print = time.time()
     with urllib.request.urlopen(req, timeout=900) as r:
         for raw in r:
             line = raw.decode("utf-8", "replace").strip()
@@ -62,10 +64,20 @@ def synth_wav(base: str, text: str, ref_bytes: bytes) -> bytes:
                 ev = json.loads(line[5:].strip())
             except ValueError:
                 continue
-            if ev.get("type") == "done":
+            etype = ev.get("type")
+            if etype == "done":
                 wav_url = ev.get("wav")
-            elif ev.get("type") == "error":
+            elif etype == "error":
                 raise SystemExit(f"[tts_once] 服务端报错: {ev.get('detail')}")
+            elif etype not in ("heartbeat", "ping", "keepalive"):
+                # 排队 / 模型加载 / 进度都要说出来，别让调用方以为卡死
+                detail = {k: v for k, v in ev.items() if k != "type"}
+                print(f"[tts_once] {etype}: {json.dumps(detail, ensure_ascii=False)[:200]}", flush=True)
+                last_print = time.time()
+            if time.time() - last_print > 15:
+                print("[tts_once] 仍在等待（模型首次加载约 60-90 秒，或前面有任务在排队）…",
+                      flush=True)
+                last_print = time.time()
     if not wav_url:
         raise SystemExit("[tts_once] 服务端没有返回音频地址")
     with urllib.request.urlopen(base.rstrip("/") + urllib.parse.quote(wav_url, safe="/:?=&%"), timeout=120) as r:

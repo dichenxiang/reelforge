@@ -57,6 +57,26 @@ WorkBuddy 来源要求 headless profile 也装了插件：
 dsh plugin --profile headless add dsh-connect-workbuddy
 ```
 
+## AgentTeams（并行开发）
+
+- 桌面 profile 一般自带 `@nanmicoder/dsh-agent-teams`；**headless profile 默认没有**
+  → MCP 跑的任务其实没有团队能力，`/agent-teams` 会退化成普通对话
+- 装到 headless：`python skills/reelforge/scripts/dsh_teams.py --install headless`（装完重启 Harness 进程）
+- headless **没有 UI**，建团队必须传 `approval="automatic"`，否则卡在审批面板
+
+## 沙箱与工作区
+
+headless 的文件沙箱是 workspace-write：**只允许写会话工作区（= 任务 cwd）**。
+所以 MCP 的 `session_workspace` 默认是 `auto`：
+
+| 项目位置 | 会话工作区 | 效果 |
+|---|---|---|
+| 在 DSH 默认工作区内 | 默认工作区 | 桌面 App 里能实时看到会话，且可写 |
+| 在别处（如 `D://视频//work//x`） | 项目目录本身 | 可写工程；会话按该目录分组，界面里可能要在「工作区」里切换 |
+
+传 `session_workspace="default"` 强制用默认工作区（此时写项目目录会被沙箱拒）；
+传 `"cwd"` 强制用给定目录。
+
 ## 会话在桌面 UI 里可见
 
 DSH 把会话按 **cwd 分组**存在 `~/.dsh/sessions/<编码路径>/`。MCP 默认用

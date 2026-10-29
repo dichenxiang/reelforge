@@ -24,3 +24,10 @@ out/
 .env
 *.key
 *credentials*
+
+# 本地/工具产物（开源前补）
+skills/reelforge/config/personas.local.yaml
+.dsh-ops-update-*.lock
+node_modules/
+dist/
+.venv/

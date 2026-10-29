@@ -29,7 +29,18 @@ presentation/
 
 ## 3. agent-teams 并行
 
-**前提**：DSH 已装 `@nanmicoder/dsh-agent-teams`（0.1.27）。任务消息以 `/agent-teams ` 开头。
+**前提**：DSH 已装 `@nanmicoder/dsh-agent-teams`（0.1.27），且**在你要用的那个 profile 里**：
+
+```bash
+python <reelforge>/scripts/dsh_teams.py --status     # 看各 profile 开没开
+python <reelforge>/scripts/dsh_teams.py --install headless   # headless 没开就装
+```
+
+⚠️ **桌面端装了不等于 headless 装了**：MCP 走的是 headless profile，
+桌面 App 里能用 `/agent-teams`，不代表我们跑的 headless 任务能用。
+
+⚠️ **headless 没有 UI**：建团队时必须用 `approval="automatic"`，
+否则会卡在「点击确认并启动团队」那个面板上等人工。
 
 推荐任务描述：
 
@@ -53,7 +64,10 @@ presentation/
 | 冲突 | 章节目录物理隔离，CSS 前缀按章加（`.ch02-`） |
 | 验收 | captain 统一跑 tsc + 逐章截图 |
 
-如果 team 不可用（插件没装/版本不匹配），退化为顺序执行，不要硬起。
+如果 team 不可用（插件没装/版本不匹配），退化为顺序执行，并**在汇报里写明「本次为顺序执行，未启用团队」**，不要硬起、也不要假装并行。
+
+沙箱：headless 只允许写会话工作区（= 任务 cwd）。所以**必须在项目目录下启动任务**，
+否则写工程文件会被拒（`[sandbox: file access denied under workspace-write mode]`）。
 
 ## 4. 音频
 

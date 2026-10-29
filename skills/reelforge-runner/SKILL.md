@@ -37,7 +37,12 @@ wvp 在 `<reelforge>/vendor/web-video-presentation`；没有就跑总控的安�
 # 1) 旁白能力（决定这条路走不走得通）
 python <reelforge>/scripts/tts_once.py --text "测试一下旁白" --out probe.mp3 --persona <ace|gatekeeper>
 
-# 2) 素材尺寸是否够用（截图/商品图能不能撑满 1920×1080）
+# 2) 团队能力（MCP 走 headless profile，插件默认没装）
+python <reelforge>/scripts/dsh_teams.py --status
+# 显示 headless 未开启 → 装上（装完要重启 Harness 进程）：
+python <reelforge>/scripts/dsh_teams.py --install headless
+
+# 3) 素材尺寸是否够用（截图/商品图能不能撑满 1920×1080）
 python - <<'PY'
 from PIL import Image
 import glob, sys
@@ -51,7 +56,18 @@ PY
 ```
 
 自检结论要写进汇报：旁白用什么音色（IndexTTS 克隆 / edge 兜底）、素材怎么呈现
-（浏览器窗口框 / 手机框 / 画面内放大 ≤1.5×）、**时长不由你压缩**。
+（浏览器窗口框 / 手机框 / 画面内放大 ≤1.5×）、**时长不由你压缩**、
+**团队是否可用（headless 有没有 agent-teams）**。
+
+### 沙箱规则（会让你白跑一遍的那种坑）
+
+DSH headless 的文件沙箱是 **workspace-write**：只允许写**会话工作区**（= 你启动任务时的
+cwd）及其临时目录。所以：
+
+- 任务必须在**项目目录**下启动（`cwd` 指向工程根），否则写 `src/`、`public/` 会被拒
+- 需要写别处 → 在任务里说明并让 agent 改用会话工作区内的相对路径
+- 遇到 `[sandbox: file access denied under workspace-write mode]`，别重试同一个路径，
+  先确认 cwd 是不是项目目录
 
 ### P0 建工程
 
