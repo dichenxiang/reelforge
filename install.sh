@@ -54,7 +54,10 @@ copy_skill() {
   local name="$1" dest_root="$2"
   local src="$REPO/skills/$name"
   local dst="$dest_root/$name"
-  [[ -d "$src" ]] || { echo "✗ 找不到 $src"; return 1; }
+  if [[ ! -d "$src" ]]; then
+    echo "  · 跳过 $name（仓库里没有这个 skill）"
+    return 0
+  fi
   mkdir -p "$dest_root"
   if [[ -e "$dst" ]]; then
     if [[ $FORCE -eq 1 ]]; then
@@ -82,6 +85,7 @@ install_for() {
       copy_skill reelforge        "$UHOME/.workbuddy/skills"
       copy_skill reelforge-writer "$UHOME/.workbuddy/skills"
       copy_skill reelforge-runner "$UHOME/.workbuddy/skills"
+      copy_skill reelforge-duo "$UHOME/.workbuddy/skills"
       ensure_config "$UHOME/.workbuddy/skills"
       ;;
     antigravity)
@@ -91,12 +95,14 @@ install_for() {
     dsh)
       echo "DeepSeek Harness"
       copy_skill reelforge-runner "$UHOME/.dsh/skills"
+      copy_skill reelforge-duo "$UHOME/.dsh/skills"
       ;;
     claude)
       echo "Claude Code"
       copy_skill reelforge        "$UHOME/.claude/skills"
       copy_skill reelforge-writer "$UHOME/.claude/skills"
       copy_skill reelforge-runner "$UHOME/.claude/skills"
+      copy_skill reelforge-duo "$UHOME/.claude/skills"
       ensure_config "$UHOME/.claude/skills"
       ;;
     codex)
@@ -104,6 +110,7 @@ install_for() {
       copy_skill reelforge        "$UHOME/.codex/skills"
       copy_skill reelforge-writer "$UHOME/.codex/skills"
       copy_skill reelforge-runner "$UHOME/.codex/skills"
+      copy_skill reelforge-duo "$UHOME/.codex/skills"
       ensure_config "$UHOME/.codex/skills"
       ;;
   esac

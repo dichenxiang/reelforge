@@ -148,6 +148,22 @@ dsh plugin --profile web add --save-exact @nanmicoder/dsh-agent-teams@0.1.27
 
 `install.sh` 会从 `*.example.yaml` 生成初始配置，按注释改即可。
 
+## 4.7 两种模式怎么选
+
+| 模式 | 装法 | 谁当总控 | 怎么触发 |
+|---|---|---|---|
+| trio | `bash install.sh --workbuddy --antigravity --dsh` | WorkBuddy | 在 WorkBuddy 里说「做一条 X 片子」 |
+| duo | `bash install.sh --antigravity --dsh`（或 `--codex`） | **你** | 在 Harness / Codex 里说「按 reelforge-duo 做一条 X 片子」 |
+
+duo 模式的执行者（也就是总控）会：
+
+1. `duo.py handoff` 生成交接稿 → 你整段粘给 Antigravity
+2. 它收稿后跑参考度审计 → 退回重写或请你拍板
+3. 之后的工程、音频、录屏它自己干，每道门停下来问你
+
+Codex 用户：`~/.codex/skills/` 已装好四份 skill；
+另外 `~/.codex/AGENTS.md` 里加一行「视频任务先读 reelforge-duo 的 SKILL.md」即可。
+
 ## 5. 换一套 agent
 
 | 角色 | 可替换为 | skill 放哪 |

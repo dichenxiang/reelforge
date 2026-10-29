@@ -20,6 +20,19 @@ description: 三端编排的短视频生产流水线。总控（本 skill）负�
 三端通过**文件 + `state.json`** 协作，谁都能换，只要读写同一份工作目录。
 换 agent 的部署方法见 `DEPLOY.md` / `AGENT_DEPLOY.md`。
 
+### 两种运行模式（并存，按场景切换）
+
+| 模式 | 总控是谁 | 组成 | 适合 |
+|---|---|---|---|
+| **trio** | WorkBuddy（本 skill） | WorkBuddy + Antigravity + Harness/Codex | 批量、无人值守、手机上盯着 |
+| **duo** | **人**（你在电脑前） | Antigravity + Harness/Codex（执行者兼总控，用 `reelforge-duo`） | 边看边调、一次性高质量 |
+
+模式只影响「谁来派活、谁来问验收」，
+门槛、脚本、素材库、参考度审计完全共用。切换：改 `config/pipeline.yaml` 的 `mode`。
+
+- trio：见本文件
+- duo：见 `reelforge-duo` 的 SKILL（执行者读它），人只负责拍板与转发
+
 ## 流程
 
 ```

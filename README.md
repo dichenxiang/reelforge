@@ -46,11 +46,20 @@ python skills/reelforge/scripts/pack_task.py writer --work work/demo --persona a
 
 详细流程见 [`skills/reelforge/SKILL.md`](skills/reelforge/SKILL.md)。
 
-## 三个 skill
+## 两种模式，四个 skill
+
+| 模式 | 总控 | 组成 | 适合 |
+|---|---|---|---|
+| **trio** | WorkBuddy（agent 当总控） | `reelforge` + `reelforge-writer` + `reelforge-runner` | 批量、无人值守，手机上也能盯 |
+| **duo** | **你**（人在电脑前） | `reelforge-duo` + `reelforge-writer` + `reelforge-runner` | 边看边调，一次性高质量 |
+
+两种模式**共用同一套门槛、脚本、素材库和参考度审计**，
+差别只在「谁派活、谁问验收」。切换：`config/pipeline.yaml` 的 `mode`。
 
 | skill | 给谁 | 内容 |
 |---|---|---|
-| [`reelforge`](skills/reelforge/) | 总控 | 状态机、参考度审计、任务包、素材库、验收卡 |
+| [`reelforge`](skills/reelforge/) | trio 总控 | 状态机、参考度审计、任务包、素材库、验收卡 |
+| [`reelforge-duo`](skills/reelforge-duo/) | duo 总控（执行 agent 兼） | 交接稿生成、收稿校验、给人生成验收卡 |
 | [`reelforge-writer`](skills/reelforge-writer/) | 写稿 | 口播化规则、去 AI 味、参考预算、输出契约 |
 | [`reelforge-runner`](skills/reelforge-runner/) | 执行 | wvp 全流程、agent-teams 并行、TTS、录屏、验收 |
 
@@ -71,7 +80,8 @@ sha256 去重、授权字段、`used_in` 追踪，交付时能直接出素材授
 
 ```
 skills/
-  reelforge/          总控 skill（scripts + references + 配置示例）
+  reelforge/          trio 总控 skill（scripts + references + 配置示例）
+  reelforge-duo/      duo 总控 skill（人在前）
   reelforge-writer/   写稿 skill
   reelforge-runner/   执行 skill（含 record.mjs）
 mcp/

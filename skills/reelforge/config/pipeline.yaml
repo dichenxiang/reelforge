@@ -1,6 +1,19 @@
 # reelforge 编排配置
 # 只在总控侧读；写稿/执行 skill 各自有自己的默认值。
 
+# 运行模式：trio = WorkBuddy 当总控；duo = 人在前，执行 agent 自己当总控
+mode: trio
+
+modes:
+  trio:
+    orchestrator: workbuddy
+    skills: [reelforge, reelforge-writer, reelforge-runner]
+    特点: 全自动派活与轮询，手机可看，适合批量
+  duo:
+    orchestrator: human            # 人当总控
+    skills: [reelforge-duo, reelforge-writer, reelforge-runner]
+    特点: 人在电脑前，当面拍板，适合一次性高质量产出
+
 roles:
   orchestrator:
     agent: workbuddy           # 任意能开会话、能读写文件的 agent

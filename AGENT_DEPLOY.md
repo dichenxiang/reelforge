@@ -117,6 +117,16 @@ dsh plugin --profile headless add dsh-connect-workbuddy
 
 不要默认切到 WorkBuddy 来源——用户没明确说就用官方。
 
+## 5.2 运行模式
+
+| 模式 | 什么时候用 | 装哪几个 skill |
+|---|---|---|
+| trio | 批量、无人值守、想用手机盯 | 总控 + 写稿 + 执行（都装） |
+| duo | 人在电脑前，边看边调 | `reelforge-duo` + 写稿 + 执行 |
+
+判断依据：**用户是否明确说「我在电脑前」「就我们两个」「我来拍板」**——
+是就用 duo，否则默认 trio。模式写在 `config/pipeline.yaml` 的 `mode`。
+
 ## 6. 校验（全部要过）
 
 ```bash
