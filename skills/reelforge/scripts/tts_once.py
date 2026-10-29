@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _common import SKILL_DIR, ffmpeg  # noqa: E402
 from personas import get as get_persona  # noqa: E402
-from tts import ensure_server, tts_config  # noqa: E402
+from tts import ensure_server, tts_config, list_presets, preset_ref  # noqa: E402
 
 
 def synth_wav(base: str, text: str, ref_bytes: bytes) -> bytes:
@@ -90,7 +90,15 @@ def main() -> int:
     ap.add_argument("--out", required=True, help="目标 mp3 绝对路径")
     ap.add_argument("--persona", default=None)
     ap.add_argument("--ref-audio", default=None)
+    ap.add_argument("--preset", default=None, help="IndexTTS 预设名（有这个就优先用预设）")
+    ap.add_argument("--list-presets", action="store_true")
     a = ap.parse_args()
+
+    base = (tts_config().get("http") or {}).get("url") or "http://127.0.0.1:7860"
+    if a.list_presets:
+        ensure_server(base)
+        print(json.dumps({"presets": list_presets(base)}, ensure_ascii=False, indent=2))
+        return 0
 
     text = (a.text or "").strip()
     if not text:
@@ -98,11 +106,14 @@ def main() -> int:
 
     persona = get_persona(a.persona)
     voice = persona.get("voice") or {}
-    ref = Path(a.ref_audio or voice.get("ref_audio") or "")
+    if a.preset:
+        ensure_server(base)
+        ref = preset_ref(base, a.preset, Path(tempfile.gettempdir()) / "vf-presets")
+    else:
+        ref = Path(a.ref_audio or voice.get("ref_audio") or "")
     if not ref.exists():
-        raise SystemExit(f"[tts_once] 参考音频不存在: {ref}")
+        raise SystemExit(f"[tts_once] 参考音频不存在: {ref}（用 --preset 列预设或 --ref-audio 指定）")
 
-    base = (tts_config().get("http") or {}).get("url") or "http://127.0.0.1:7860"
     ensure_server(base)
     wav = synth_wav(base, text, ref.read_bytes())
 

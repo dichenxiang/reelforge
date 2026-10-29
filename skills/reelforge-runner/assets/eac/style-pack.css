@@ -1,0 +1,51 @@
+/*
+ * EAC 风格层（可直接放进任意网页视频工程）
+ * 来源：EAC design world / motion-promo-film STYLE.md §1.2 §3 的「颗粒 + 暗角」，
+ *      转场思路来自 video-shotcraft 的 sc-blinds-slice（Apache-2.0，成片需署名）。
+ *
+ * 用法：
+ *   1) 复制本文件到工程 src/styles/eac-layer.css 并 import
+ *   2) 在根组件挂：
+ *        <div class="eac-grain" aria-hidden></div>
+ *        <div class="eac-vignette" aria-hidden></div>
+ *   3) 章节切换时挂 <div class="eac-wipe">6 个 <span/></div>，动画只跑一次
+ *
+ * 注意：颗粒 opacity 建议 0.04–0.06；>0.07 会糊字幕。
+ */
+
+.eac-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='0.55'/></svg>");
+  background-size: 180px 180px;
+}
+
+.eac-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 79;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 52%, rgba(0, 0, 0, 0.26) 100%);
+}
+
+.eac-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  pointer-events: none;
+}
+.eac-wipe span {
+  flex: 1;
+  background: #070b09;
+  border-right: 1px solid rgba(223, 255, 67, 0.22);
+  transform-origin: left center;
+  animation: eac-wipe-slat 0.42s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes eac-wipe-slat {
+  0% { transform: scaleX(1); }
+  100% { transform: scaleX(0); }
+}

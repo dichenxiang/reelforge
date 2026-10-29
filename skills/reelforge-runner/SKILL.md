@@ -59,6 +59,48 @@ PY
 （浏览器窗口框 / 手机框 / 画面内放大 ≤1.5×）、**时长不由你压缩**、
 **团队是否可用（headless 有没有 agent-teams）**。
 
+### P0.5 出片路线：A（HTML 渲染+录屏）还是 B（EAC film 时间轴）
+
+稿子确认后，**先问用户选路线**，不要默认；选择写进 state：
+
+```bash
+python <reelforge>/scripts/state.py set --work "$W" --meta render=A --meta template=<模板id>
+```
+
+| 路线 | 做法 | 适合 |
+|---|---|---|
+| A（默认） | wvp 章节 → `record_auto.mjs` 录屏 → `mix_timeline.py` 混音+字幕 | 口播驱动、50 拍以上、信息密度高 |
+| B | 一个确定性 `film.html`（`__seek(t)`）→ EAC `render-template` 逐帧渲染 | 30–90s、强动效、模板级视觉 |
+
+- 有 EAC 插件：`python <runner>/scripts/eac_probe.py --json` 列模板/动效，让用户选模板与风格
+- 没插件：回 A，不要假装支持 B
+- B 的契约、渲染命令、许可边界：`references/route-b-eac-film.md`
+- 生成 B 的骨架：`python <runner>/scripts/film_from_beats.py --work "$W" --out "$W/film/film.html"`
+
+### P0.6 配音方式与预设（必须问）
+
+1. 有 IndexTTS：`python <reelforge>/scripts/tts_once.py --list-presets --out /tmp/x.mp3` 列预设，让用户选
+2. 没有 IndexTTS 但有 GPU 条件：提示装 IndexTTS（`D:/indexTTS` 或 tts.yaml 的 start_cmd）
+3. 都没有：edge-tts 兜底（`pip install edge-tts`），列 `zh-CN-*` 音色让用户选
+4. 用户自带录音/克隆：要 10–20 秒干声，路径写进 personas
+
+合成时把 provider/preset 写进 state：`--meta tts_provider=indextts --meta tts_preset=<预设>`。
+
+### P0.7 字幕（默认要）
+
+- 交付必须带字幕：`mix_timeline.py` 会同时产出 `.srt` 和 `.ass`
+- 要烧进画面加 `--burn`（`--font "Microsoft YaHei" --font-size 44 --margin-v 72`）
+- 不烧录就交付外挂 `.srt`，并在交付说明写清
+
+### P0.8 录制/混音工具（已下沉）
+
+```bash
+node <runner>/scripts/record_auto.mjs --url "http://127.0.0.1:4176/?auto=1" --duration 150 --out out/raw.webm
+python <runner>/scripts/mix_timeline.py --raw out/raw.webm --timeline out/raw.timeline.json --segments audio-segments.json --audio-dir public/audio --out out/final.mp4 --burn --srt out/final.srt
+```
+
+录屏**用 `vite preview` 的生产构建**（dev server 的旧模块缓存会录到旧章节）。
+
 ### 沙箱规则（会让你白跑一遍的那种坑）
 
 DSH headless 的文件沙箱是 **workspace-write**：只允许写**会话工作区**（= 你启动任务时的
@@ -102,81 +144,59 @@ python <reelforge>/scripts/state.py gate --work "$W" --name chapter_gate \
 - captain 在集成阶段统一注册章节、跑 `npx tsc --noEmit`
 - 详细协议见 `references/wvp-execution.md`
 
-### P3 音频（旁白：必须用 IndexTTS 克隆音色）
+### P3 音频（按用户选择，不默认）
 
-**唯一允许的旁白来源是本机 IndexTTS 克隆音色**，对应账号人设：
+**先问用户用哪种**（写进 state：`--meta tts_provider=... --meta tts_preset=...`）：
 
-| 人设 | 参考音频 | 说明 |
-|---|---|---|
-| ace（阿测） | `D:/indexTTS/voices/ace_ref.wav` | 20 多岁男声，偏快 |
-| gatekeeper（把关学长） | `D:/indexTTS/voices/gate_ref.wav` | 沉稳男声，偏慢 |
+1. **IndexTTS 预设**（推荐）：`python <reelforge>/scripts/tts_once.py --list-presets --out /tmp/x.mp3` 列出来让用户选
+2. **IndexTTS 参考干声**：10–20 秒干净人声，路径写进 personas 的 `voice.ref_audio`
+3. **edge-tts 兜底**：没有 GPU 时用，列 `zh-CN-*` 音色让用户选（需 `pip install edge-tts`）
+4. **自定义命令**：`provider=cmd`，接 OpenAI 兼容 / ElevenLabs / 自建服务
 
-**禁止使用 Windows SAPI（Huihui / KangKang / Yaoyao 等）或任何系统音色**——
-那些是机械音，和账号人设不符。也不要因为「服务没在跑」就退化成系统配音：
-IndexTTS 服务没起时**会自动拉起**（约 40 秒加载），等它就行。
-
-先自检（一条命令判断能不能用）：
+**禁止 Windows SAPI**（Huihui / KangKang / Yaoyao）——机械音，宁可不配旁白。
 
 ```bash
-python <reelforge>/scripts/tts_once.py --text "测试一下旁白" --out /tmp/probe.mp3 --persona ace
-```
-
-能出 mp3 就说明服务、参考音频、ffmpeg 都正常。报「连不上」时看 `%TEMP%\vf-tts-server.log`。
-
-正式合成：
-
-```bash
+python <reelforge>/scripts/tts_once.py --text "测试一下旁白" --out /tmp/probe.mp3 --persona <id> --preset "<预设>"
 cd "$W/presentation"
 npm run extract-narrations
-PRESENTATION_TTS=indextts TTS_PERSONA=<ace|gatekeeper> npm run synthesize-audio
-```
-
-| 问题 | 处理 |
-|---|---|
-| 某段时长不合 | 回 outline 调 step 数，**不许用 SAPI 顶替，也不许为压时长删内容** |
-| 想整体加速/减速 | 改 `personas.yaml` 的 `voice.rate`，重合成，不要在视频里做变速 |
-| 服务起不来 | 手动双击 `D:/indexTTS/extracted/IndexTTS2.0_v3/start_server.bat`，再试 |
-| 真没有 IndexTTS 的机器 | 才用 edge-tts（`--provider edge`），并在汇报里注明「用的是 edge 兜底」 |
-
-### P3 音频
-
-```bash
-cd "$W/presentation"
-npm run extract-narrations
-PRESENTATION_TTS=indextts TTS_PERSONA=<ace|gatekeeper> npm run synthesize-audio
+PRESENTATION_TTS=indextts TTS_PERSONA=<id> TTS_PRESET="<预设>" npm run synthesize-audio
 ```
 
 完成后停下写 gate：
 
 ```bash
-python <reelforge>/scripts/state.py gate --work "$W" --name audio_gate \
-  --artifacts "$W/presentation/public/audio"
+python <reelforge>/scripts/state.py gate --work "$W" --name audio_gate --artifacts "$W/presentation/public/audio"
 ```
 
-### P4 录屏
+| 问题 | 处理 |
+|---|---|
+| 某段时长不合 | 回 outline 调 step 数；不许用 SAPI 顶替，也不许为压时长删内容 |
+| 想整体加速/减速 | 改 personas 的 `voice.rate` 重合成，不在视频里变速 |
+| 服务起不来 | 按 `config/tts.yaml` 的 start_cmd 手动起，看 `%TEMP%/vf-tts-server.log` |
+| 无 GPU | 走 edge-tts，并在汇报里注明「edge 兜底」 |
 
-两种模式，按总控给的条件选：
+### P4 录屏（路线 A）
 
-| 模式 | 命令 | 场景 |
-|---|---|---|
-| 人工 | 打开 `http://localhost:<port>/?auto=1`，按 SPACE，OBS 录 | 人在电脑前 |
-| 脚本 | `node <runner>/scripts/record.mjs --url http://localhost:5174/?auto=1 --duration 42 --out "$W/presentation/out/final.mp4"` | 远程 |
-
-脚本模式首次要 `npm i -D playwright && npx playwright install chromium`。
-
-### P5 验收
+**用生产构建，不用 dev server**（旧模块缓存会录到旧章节）：
 
 ```bash
-ffprobe -v error -show_entries stream=width,height,codec_type \
-        -show_entries format=duration -of default=nw=1 "$W/presentation/out/final.mp4"
+cd "$W/presentation"
+npm run build
+npx vite preview --port 4176 --host 127.0.0.1
+node <runner>/scripts/record_auto.mjs --url "http://127.0.0.1:4176/?auto=1" --duration <片长+15> --out out/raw.webm
 ```
 
-必须 1920×1080、有 audio 流、时长与 outline 差 <10%。
-不过就修，不要用「看起来没问题」交付。
+人工模式：打开 `?auto=1`，点一下开始，OBS 录；保留同步白块或用后续手工对轨。
+
+### P5 混音 + 字幕 + 验收
 
 ```bash
-python <reelforge>/scripts/state.py set --work "$W" --stage qa --status done --owner runner
+python <runner>/scripts/mix_timeline.py --raw out/raw.webm --timeline out/raw.timeline.json --segments audio-segments.json --audio-dir public/audio --out out/final.mp4 --burn --srt out/final.srt
+ffprobe -v error -show_entries format=duration -show_entries stream=width,height,codec_type -of default=nw=1 out/final.mp4
+ffmpeg -ss 12.4 -i out/final.mp4 -frames:v 1 qc_12.4.png
 ```
+
+必须 1920×1080、30fps、有音轨、带字幕（烧录或外挂 SRT）；时长与旁白差 <1s。
 
 ## 禁止
 

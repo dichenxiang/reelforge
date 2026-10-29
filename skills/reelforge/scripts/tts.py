@@ -87,14 +87,43 @@ def ensure_server(base: str) -> None:
     raise SystemExit(f"[tts] 服务启动超时（{timeout}s），手动跑 start_server.bat 看日志")
 
 
+def list_presets(base_url: str) -> list[str]:
+    """列 IndexTTS 服务上的音色预设。"""
+    import urllib.request
+    try:
+        with urllib.request.urlopen(base_url.rstrip("/") + "/api/v1/presets", timeout=5) as r:
+            return json.loads(r.read().decode("utf-8")).get("presets", [])
+    except Exception:
+        return []
+
+
+def preset_ref(base_url: str, name: str, cache_dir: Path) -> Path:
+    """把某个预设的参考音频落盘，返回本地路径（用于克隆音色）。"""
+    import re
+    import urllib.parse
+    import urllib.request
+    base = base_url.rstrip("/")
+    with urllib.request.urlopen(base + "/api/v1/presets/" + urllib.parse.quote(name), timeout=10) as r:
+        detail = json.loads(r.read().decode("utf-8"))
+    audio_url = detail.get("prompt_audio_url") or f"/api/v1/presets/{urllib.parse.quote(name)}/audio/prompt"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    out = cache_dir / (re.sub(r"[^\w\-]+", "_", name) + ".wav")
+    with urllib.request.urlopen(base + audio_url, timeout=60) as r:
+        out.write_bytes(r.read())
+    return out
+
+
 def http_batch(beats: list[dict], out_dir: Path, voice: dict, base_url: str,
-               ref_audio: str | None) -> list[Path]:
+               ref_audio: str | None, preset: str | None = None) -> list[Path]:
     """调本地 IndexTTS 服务的 /api/v1/tts（表单上传 + SSE 进度），返回原始 wav。"""
     import urllib.parse
     import urllib.request
     import uuid
 
-    ref = Path(ref_audio or voice.get("ref_audio") or "")
+    if preset:
+        ref = preset_ref(base_url, preset, out_dir / "_preset")
+    else:
+        ref = Path(ref_audio or voice.get("ref_audio") or "")
     if not ref.exists():
         raise SystemExit(
             f"[tts] 缺少参考音频: {ref}\n"
@@ -197,12 +226,21 @@ def main() -> int:
     ap.add_argument("--provider", default=None, choices=["edge", "http", "cmd"],
                     help="默认取人设 voice.provider，缺省 edge")
     ap.add_argument("--ref-audio", default=None, help="IndexTTS 参考音频（10–20 秒干净人声）")
+    ap.add_argument("--preset", default=None, help="IndexTTS 预设名（优先于 ref-audio）")
+    ap.add_argument("--list-presets", action="store_true", help="只列预设后退出")
     ap.add_argument("--server", default=None,
                     help="IndexTTS 服务地址，默认取 config/tts.yaml 的 http.url")
     ap.add_argument("--cmd-template", default=None)
     ap.add_argument("--gap", type=float, default=0.12, help="拍间停顿秒数")
     ap.add_argument("--force", action="store_true")
     a = ap.parse_args()
+
+    if a.list_presets:
+        base = a.server or (tts_config().get("http") or {}).get("url") or "http://127.0.0.1:7860"
+        ensure_server(base)
+        names = list_presets(base)
+        print(json.dumps({"presets": names}, ensure_ascii=False, indent=2))
+        return 0
 
     work = Path(a.work)
     script_path = work / "script.json"
@@ -216,6 +254,8 @@ def main() -> int:
     persona = get_persona(a.persona)
     voice = persona.get("voice") or {}
     provider = a.provider or voice.get("provider") or "edge"
+    if provider in ("indextts", "index"):
+        provider = "http"
     out_dir = Path(a.out) if a.out else work / "showreel" / "audio"
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -228,7 +268,7 @@ def main() -> int:
     if provider == "http":
         base = a.server or (tts_config().get("http") or {}).get("url") or "http://127.0.0.1:7860"
         ensure_server(base)
-        raws = http_batch(valid, out_dir, voice, base, a.ref_audio)
+        raws = http_batch(valid, out_dir, voice, base, a.ref_audio, a.preset or voice.get("preset"))
         for i, (b, raw) in enumerate(zip(valid, raws), 1):
             tag = b.get("id") or f"b{i}"
             wav = out_dir / f"beat_{i:02d}.wav"

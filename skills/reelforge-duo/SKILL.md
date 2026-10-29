@@ -28,14 +28,38 @@ description: 双人模式的视频生产总控。人在前当总控（Antigravit
 | 步 | 谁做 | 动作 | 门 |
 |---|---|---|---|
 | 0 | 执行 | `duo.py start --work work/x --title "片名"` 建目录与状态 | — |
+| 0.5 | 执行 | 检查 `personas.local.yaml`；没有就跑 `personas_init.py`，多轮确认后才落盘 | 🛑 你确认人设 |
 | 1 | 执行 | `duo.py handoff --work work/x` 生成给写稿 agent 的交接稿 | — |
 | 2 | 人 | 把交接稿粘给 Antigravity，它产出 `script.md` + `script.json`，放回 `work/x/` | — |
 | 3 | 执行 | `duo.py intake --work work/x` → 相似度审计 → 超 60 就退回重写 | 🛑 你确认口播稿 |
-| 4 | 执行 | `make_wvp_inputs.py` → scaffold → 第 1 章 → 其余章 | 🛑 你验收第 1 章 |
-| 5 | 执行 | extract → IndexTTS 合成 → 录屏 | 🛑 你验收音频 |
+| 3.5 | 执行 | 问路线 A/B、模板风格、配音方式/预设、字幕；写进 state | 🛑 你拍板 |
+| 4 | 执行 | 按选定路线：A=wvp 章节/录屏；B=EAC film 时间轴 → 第 1 章/首段 | 🛑 你验收第 1 章 |
+| 5 | 执行 | extract → 选定 TTS 预设合成 → 录屏 → 混音+字幕 | 🛑 你验收音频 |
 | 6 | 执行 | ffprobe 验收 → 交付 | 🛑 你验收成片 |
 
 **每一道门都要停下来问人**，别自己往下推。
+
+## 0.5 人设与四问（每次开工都要做）
+
+**人设不预设**。第一次部署先跑：
+
+```bash
+python <reelforge>/scripts/personas_init.py
+```
+
+- 问用户 1 个还是多个；逐个问 id / 显示名 / 定位 / 口吻 / 配音方式
+- 汇总后让用户**输入默认人设名二次确认**，再确认写入；不确认不落盘
+- 每次写稿前再问「这条用哪个人设」，**不要默认 ace**
+
+**稿子确认后、进工程前**，当面问清四件事并写进 `state.json`：
+
+| 问题 | 选项 |
+|---|---|
+| 路线 | A=HTML 渲染+录屏 / B=EAC `__seek(t)` 时间轴 |
+| 模板/风格 | `eac_probe.py` 列出来给用户选；没装 EAC 就回 A |
+| 配音 | IndexTTS 预设 / 参考干声 / edge-tts / 自定义 |
+| 字幕 | 烧录 / 外挂 SRT / 不要 |
+
 
 ## 铁律：执行者不检索、不写稿
 

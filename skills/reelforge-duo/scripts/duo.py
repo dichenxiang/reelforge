@@ -1,7 +1,7 @@
 """双人模式的总控助手：把「人当总控」这件事脚本化。
 
     python duo.py start  --work work/x --title "片名"
-    python duo.py handoff --work work/x --persona ace --budget 40
+    python duo.py handoff --work work/x --persona <id> --budget 40
     python duo.py intake --work work/x
     python duo.py gate   --work work/x --name script_gate --ask "这段口播可以吗？"
     python duo.py approve --work work/x --gate script_gate --note "过"
@@ -234,7 +234,7 @@ def main() -> int:
 
     p = sub.add_parser("handoff")
     p.add_argument("--work", required=True)
-    p.add_argument("--persona", default="ace")
+    p.add_argument("--persona", default="", help="不填就先问用户用哪个人设")
     p.add_argument("--budget", type=int, default=40)
     p.add_argument("--title", default="")
     p.add_argument("--topic", default="", help="本次要回答的问题（给写稿 agent）")

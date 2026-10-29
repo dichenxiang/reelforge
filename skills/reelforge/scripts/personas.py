@@ -32,16 +32,22 @@ def load() -> dict:
     if not path.exists():
         raise SystemExit(f"[persona] 找不到配置: {path}")
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if isinstance(data.get("personas"), list):
+        data["personas"] = {p["id"]: p for p in data["personas"] if p.get("id")}
     data["_path"] = str(path)
     return data
 
 
 def get(persona_id: str | None = None) -> dict:
     data = load()
-    pid = persona_id or data.get("default_persona")
     personas = data.get("personas") or {}
+    if not personas:
+        raise SystemExit("[persona] 还没有任何人设：先跑 scripts/personas_init.py")
+    pid = persona_id or data.get("default_persona")
     if pid not in personas:
-        raise SystemExit(f"[persona] 没有 {pid}，可选：{', '.join(personas)}")
+        if persona_id:
+            raise SystemExit(f"[persona] 没有 {pid}，可选：{', '.join(personas)}")
+        pid = next(iter(personas))
     p = dict(personas[pid])
     p["id"] = pid
     return p
@@ -53,7 +59,12 @@ def main() -> int:
     ap.add_argument("--show")
     ap.add_argument("--prompt")
     ap.add_argument("--voice")
+    ap.add_argument("--json", action="store_true")
     a = ap.parse_args()
+
+    if a.json:
+        print(json.dumps(load(), ensure_ascii=False, indent=2, default=str))
+        return 0
 
     if a.list or (not a.show and not a.prompt and not a.voice):
         data = load()

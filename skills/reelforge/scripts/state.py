@@ -89,6 +89,10 @@ def cmd_set(a) -> int:
     for art in a.artifacts or []:
         if art not in st["artifacts"]:
             st["artifacts"].append(art)
+    for kv in getattr(a, "meta", None) or []:
+        k, _, v = kv.partition("=")
+        if k:
+            st.setdefault("options", {})[k] = v
     event(st, "set", stage=st["stage"], status=st["status"], by=a.by or st.get("owner"))
     save(a.work, st)
     print(json.dumps(st, ensure_ascii=False, indent=2))
@@ -135,6 +139,8 @@ def cmd_show(a) -> int:
     jobs = st.get("jobs") or {}
     if jobs:
         print("  jobs: " + ", ".join(f"{k}={v}" for k, v in jobs.items()))
+    if st.get("options"):
+        print("  options: " + ", ".join(f"{k}={v}" for k, v in st["options"].items()))
     if st.get("artifacts"):
         print("  artifacts:")
         for x in st["artifacts"][-6:]:
@@ -162,6 +168,7 @@ def main() -> int:
     p.add_argument("--owner")
     p.add_argument("--job", action="append", help="agent=id，可多次")
     p.add_argument("--artifacts", action="append")
+    p.add_argument("--meta", action="append", help="项目选项 k=v，例如 --meta render=B --meta template=demo")
     p.add_argument("--by")
     p.set_defaults(fn=cmd_set)
 

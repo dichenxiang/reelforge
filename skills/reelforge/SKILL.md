@@ -1,6 +1,6 @@
 ---
 name: reelforge
-description: 三端编排的短视频生产流水线。总控（本 skill）负责拆解、状态机、参考度审计与验收；写稿交给 reelforge-writer（任意强写作模型，如 Gemini 4 Argon）；出片交给 reelforge-runner（任意能执行命令的编码 agent，如 DeepSeek Harness）。支持「完全自定义主题」和「参考片最多 60%、默认 40%」两种模式，口播稿必须先确认再开工，成片为 16:9 网页视频（wvp）录屏。
+description: 三端编排的短视频生产流水线。总控（本 skill）负责拆解、状态机、参考度审计与验收；写稿交给 reelforge-writer（任意强写作模型，如 Gemini 4 Argon）；出片交给 reelforge-runner（任意能执行命令的编码 agent，如 DeepSeek Harness）。支持「完全自定义主题」和「参考片最多 60%、默认 40%」两种模式，口播稿必须先确认再开工，成片为 16:9（默认 wvp 章节+录屏；可选 EAC film `__seek(t)` 时间轴）。
 ---
 
 # ReelForge
@@ -40,6 +40,7 @@ description: 三端编排的短视频生产流水线。总控（本 skill）负�
 1  reference   可选：analyze.py 拆参考 → reference.json（结构/手法/禁用）
 2  script      pack_task.py writer → 写稿 agent → script.md / script.json
 3  audit       similarity.py（默认40，上限60）+ 🛑 script_gate 用户确认口播稿
+3.5 options    🛑 用户选：路线 A/B、模板、配音方式/预设、字幕
 4  build       make_wvp_inputs.py → pack_task.py runner → 执行 agent 跑 wvp
 5  gates       🛑 chapter_gate 第1章 → 🛑 audio_gate 音频
 6  record      人工 OBS 或 record.mjs
@@ -64,6 +65,20 @@ python scripts/state.py init --work work/<slug> --title "片名"
 
 参考度不是「感觉像」，是 `similarity.py` 算出来的：结构 60% + 文案重合 40%。
 超 60 必须重写结构，不许只换词。
+
+## 0.1 · 首次部署：先建人设（不许跳过）
+
+第一次跑先看 `config/personas.local.yaml`；没有就让用户跑：
+
+```bash
+python scripts/personas_init.py
+```
+
+- 问用户：1 个还是多个人设；逐个问 id / 显示名 / 定位 / 口吻 / 配音方式（edge / IndexTTS 预设 / 参考干声 / 自定义）
+- 汇总后**二次确认**（输入默认人设的显示名）才写本地；不确认不落盘
+- 每次写稿前再问一次「这条用哪个人设」，**不要默认**——别人可能只有 1 个，也可能 3 个
+- 仓库里的 ace / gatekeeper 只是示例，不要当成默认值
+
 
 ## 1 · 参考拆解（可选）
 
@@ -113,6 +128,24 @@ python scripts/state.py gate --work work/<slug> --name script_gate \
 ```bash
 python scripts/make_wvp_inputs.py --work work/<slug>   # → outline.md / article.md
 ```
+
+## 3.5 · 出片前四问（稿子确认后立刻问，别自己定）
+
+| 问题 | 选项 | 写进 state |
+|---|---|---|
+| 出片路线 | A=HTML 渲染+录屏；B=EAC film `__seek(t)` 时间轴 | `--meta render=A/B` |
+| 模板/风格 | `eac_probe.py` 列模板让用户选；没装 EAC 就回 A | `--meta template=<id>` |
+| 配音 | IndexTTS 预设 / 参考干声 / edge-tts / 自定义 | `--meta tts_provider=... --meta tts_preset=...` |
+| 字幕 | 烧录 / 外挂 SRT / 不要 | `--meta subs=burn/srt/none` |
+
+问完再生成 runner 任务包：
+
+```bash
+python scripts/pack_task.py runner --work work/<slug> --persona <id>   --render B --template motion-promo-film   --tts-provider indextts --tts-preset "<预设>" --subs burn
+```
+
+（`\` 只是文档里的换行，实际执行时写一行。）
+
 
 ## 4 · 出片（交给 runner）
 

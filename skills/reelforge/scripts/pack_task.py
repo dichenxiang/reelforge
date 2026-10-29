@@ -25,14 +25,19 @@ def common(work: Path) -> str:
 """
 
 
-def pattern_file(persona: str) -> Path:
-    """按人设选「本号文案套路」文件（从真实视频逆向出来的）。"""
-    name = "patterns-ace.md" if persona == "ace" else "patterns-gatekeeper.md"
-    return SKILLS_ROOT / "reelforge-writer" / "references" / name
+def pattern_file(persona: str) -> Path | None:
+    """可选：按人设找「本号文案套路」文件；没有就返回 None，不强行套别人的模板。"""
+    if not persona:
+        return None
+    p = SKILLS_ROOT / "reelforge-writer" / "references" / f"patterns-{persona}.md"
+    return p if p.exists() else None
 
 
 def persona_block(persona: str) -> str:
     """把账号人设段落直接嵌进任务包——写稿 agent 不用自己找。"""
+    if not persona:
+        return ("（未指定人设。先跑 `python scripts/personas_init.py` 或 `personas.py --list`，"
+                "把候选列给用户选；不许自己默认一个。）")
     script = SKILL / "scripts" / "personas.py"
     try:
         out = subprocess.run(
@@ -53,6 +58,11 @@ def writer_pack(a) -> str:
 - 有参考时：结构可借、手法 ≤2 个，**文案必须原创**
 """ if ref.exists() or a.reference else "- 参考稿只提供写法；内容必须原创，不得抄原句（结构相似度会算分）\n"
     persona = persona_block(a.persona)
+    pattern = pattern_file(a.persona)
+    pattern_ref = (f"3. **{pattern}** ← **本号真实文案套路（从真实视频逆向），照这个写**"
+                   if pattern else
+                   "3. （没有本号套路文件：按 SCRIPT-STYLE.md 写，不要套用别人的句式）")
+    persona_line = a.persona or "（未指定，先问用户）"
 
     return f"""# 任务：写口播稿（reelforge-writer）
 
@@ -60,8 +70,18 @@ def writer_pack(a) -> str:
 
 ## 环境
 {common(work)}- 你的 skill：{SKILLS_ROOT / 'reelforge-writer'}
-- 人设：{a.persona}（人设段落已经贴在下面，**照这个口吻写**）
+- 人设：{persona_line}（人设段落已经贴在下面，**照这个口吻写**；用户没指定就先问）
 - 素材库清单：{work / 'assets.json'}（有就参考已有素材，不要重复找图）
+
+## 开工前先问清楚（缺一不可，先问再写）
+
+1. **用哪个人设**：{persona_line} —— 没指定就把现有人设列给用户选，**不许自己默认**
+2. **这条片子的目标**：涨粉 / 转化 / 科普 / 辟谣？目标不同，结构与 CTA 不同
+3. **受众是谁**：新手 / 从业者 / 买家？
+4. **有哪些素材**：用户自有（视频/截图/商品页）、可公开检索、还是需要用户补录？
+5. **交付形态**：16:9 还是竖屏？时长上限多少？
+
+把答案写进 `writer-notes.md` 的「开工确认」；用户没答的，按下面「素材决策」处理，**不要编**。
 
 ## 必读（按顺序，第 1、2 项是权威）
 
@@ -69,7 +89,7 @@ def writer_pack(a) -> str:
    ← **口播怎么写，唯一权威。全文读，别复述、别改写、别另立规则**
 2. **{SKILL / 'vendor' / 'web-video-presentation' / 'references' / 'OUTLINE-FORMAT.md'}**
    ← outline.md 的格式规范
-3. **{pattern_file(a.persona)}** ← **本号真实文案套路（从真实视频逆向），照这个写**
+{pattern_ref}
 4. {SKILLS_ROOT / 'reelforge-writer' / 'SKILL.md'}
 5. {SKILLS_ROOT / 'reelforge-writer' / 'references' / 'writing-rules.md'}（本项目额外 4 条约束）
 6. **{SKILLS_ROOT / 'humanizer-zh' / 'SKILL.md'}** ← **第 ② 步用（去 AI 味，已装）**
@@ -89,6 +109,19 @@ def writer_pack(a) -> str:
 2. 把事实、来源、原文片段写进 `source_digest.md`（每个结论标出处）
 3. 抓不到或互相矛盾的，写「未证实 / 有冲突」，**不许编**
 4. 检索完再进入写稿；不要一边搜一边编稿
+
+## 素材决策（先判断，再开口要）
+
+按优先级处理关键画面，**能自己解决的不麻烦用户**：
+
+1. **用户已给**：直接用，记下路径与授权
+2. **能公开检索**：先搜（官网 / 公开报道 / 官方文档），把 URL、作者、许可写进 `source_digest.md`；
+   能确认授权的才放画面，不能确认的只引文字
+3. **只能实拍/录屏**：写成「素材请求」给用户——要拍什么、为什么、多长、什么构图，
+   并给一个「没有也能出片」的替代方案（示意图 / 文字卡）
+4. **绝对不要**：编造截图、伪造后台、把示意图说成实拍
+
+在 `writer-notes.md` 单列「素材计划」：关键画面 → 来源（自有/检索/待录）/ 授权 / 替代方案。
 
 ## 长度：不要预设，按内容走
 
@@ -169,19 +202,31 @@ def runner_pack(a) -> str:
 2. {SKILL / 'vendor' / 'web-video-presentation' / 'SKILL.md'}（Phase 2–4）
 3. {SKILL / 'vendor' / 'web-video-presentation' / 'references' / 'CHAPTER-CRAFT.md'}
 
-## 参数
-- 主题：{a.theme or '按 outline 推荐'}
-- 开发模式：{a.mode}（第 1 章必须单 agent 做完并停下）
-- 人设音色：{a.persona}
-- 并行：{'用 /agent-teams，第 2..N 章每章一个 task' if a.team else '不开团队'}
+## 参数（**没填的先问用户，别自己定**）
+- 主题/视觉：{a.theme or '未指定 → 按 outline 推荐 2–3 个主题让用户选'}
+- 出片路线：{a.render}（A=HTML 渲染+录屏；B=EAC `motion-promo-film` 的 `__seek(t)` 时间轴）
+- 模板/风格：{a.template or '未指定 → 用 eac_probe.py 列模板，让用户选'}
+- 人设音色：{a.persona or '未指定 → 列 personas 让用户选'}
+- TTS：provider={a.tts_provider or '未指定（edge / indextts / custom）'}，preset={a.tts_preset or '未指定（列预设让用户选）'}
+- 字幕：{a.subs}（burn=烧进画面 / srt=外挂 / none）
+- 团队：{'用 /agent-teams，第 2..N 章每章一个 task' if a.team else '不开团队'}
+
+## 开工前先确认（按顺序，缺一不可）
+1. 路线 A/B 与模板/风格（路线 B 需要装 EAC 插件；没装就回 A）
+2. 配音方式与预设（有 IndexTTS 就列预设；没有就问 edge 音色或用户自己的录音）
+3. 字幕：烧录 / 外挂 / 不要
+4. 画幅与时长上限
 
 ## 阶段与停止点
 1. scaffold + 素材投放（`python {SKILL / 'scripts' / 'assets.py'} materialize --work "{work}"`）
 2. 第 1 章做完 → **停**，写 `state.py gate --name chapter_gate`
 3. 用户确认后，第 2..N 章（可并行）
-4. `npm run extract-narrations` → `PRESENTATION_TTS=indextts npm run synthesize-audio`
+4. `npm run extract-narrations` → 按确认的 provider/preset 合成音频
+   （IndexTTS：`PRESENTATION_TTS=indextts TTS_PERSONA=<id> TTS_PRESET=<预设> npm run synthesize-audio`）
 5. 音频完成 → **停**，写 `state.py gate --name audio_gate`
-6. 录屏（人工或 `record.mjs`）→ ffprobe 验收 → `state.py set --stage qa --status done`
+6. 录屏：`node scripts/record_auto.mjs --url ... --out out/raw.webm`
+7. 混音+字幕：`python scripts/mix_timeline.py --raw out/raw.webm --timeline out/raw.timeline.json --segments audio-segments.json --audio-dir public/audio --out out/final.mp4 --burn --srt out/final.srt`
+8. ffprobe + 抽帧验收 → `state.py set --stage qa --status done`
 
 ## 禁止
 - 改 `script.md` / `narrations.ts` 的文案（要改先回总控）
@@ -198,7 +243,7 @@ def main() -> int:
 
     p = sub.add_parser("writer")
     p.add_argument("--work", required=True)
-    p.add_argument("--persona", default="ace")
+    p.add_argument("--persona", default="")
     p.add_argument("--budget", type=int, default=40)
     p.add_argument("--reference", action="store_true")
     p.set_defaults(fn=lambda a: writer_pack(a))
@@ -207,8 +252,13 @@ def main() -> int:
     p.add_argument("--work", required=True)
     p.add_argument("--theme", default="")
     p.add_argument("--mode", default="A", choices=["A", "B", "C"])
-    p.add_argument("--persona", default="ace")
+    p.add_argument("--persona", default="")
     p.add_argument("--team", action="store_true")
+    p.add_argument("--render", default="A", choices=["A", "B"], help="A=HTML渲染录屏 / B=EAC film __seek 时间轴")
+    p.add_argument("--template", default="", help="模板/风格 id（route B 或 A 的风格层）")
+    p.add_argument("--tts-provider", default="", help="edge / indextts / custom，空=问用户")
+    p.add_argument("--tts-preset", default="", help="IndexTTS 预设名或 edge 音色，空=问用户")
+    p.add_argument("--subs", default="burn", choices=["burn", "srt", "none"], help="字幕交付方式")
     p.set_defaults(fn=lambda a: runner_pack(a))
 
     a = ap.parse_args()
