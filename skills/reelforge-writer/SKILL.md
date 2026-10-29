@@ -25,6 +25,14 @@ description: 写口播稿的专用 skill。输入主题或参考片证据 + 账�
 5. **人设口吻**：阿测偏「先给结论 + 拆依据」，把关学长偏「先拦 + 给识别方法」。
 6. 不许出现「全网最强 / 第一 / 必买 / 家人们 / 绝绝子」这类词。
 
+## 先检索，再写稿（硬性顺序）
+
+**检索是你的活，不是执行 agent 的活。** 他们会把链接和要回答的问题交给你：
+
+1. 逐条打开链接，抓正文与关键信息
+2. 写 `source_digest.md`：事实、出处、原文片段（抓不到就写「未证实」，不许编）
+3. 检索完再写稿，不要一边搜一边编
+
 ## 流程
 
 1. 读 `references/writing-rules.md`（口播化 + 去 AI 味）
@@ -42,9 +50,10 @@ python <reelforge>/scripts/similarity.py --work <work> --target 40 --max 60
 ## 输出
 
 ```
+source_digest.md  检索结果与出处（有检索时必交）
 script.md         口播稿，--- 切节拍
 script.json       机器读的版本：title/duration_sec/aspect=16:9/beats[]
-writer-notes.md   借鉴与自评
+writer-notes.md   借鉴与自评（首行写 writer-agent: <你的名字/型号>）
 ```
 
 `script.json` 的每拍必须同时有 `text` 和 `visual`：

@@ -164,6 +164,11 @@ duo 模式的执行者（也就是总控）会：
 Codex 用户：`~/.codex/skills/` 已装好四份 skill；
 另外 `~/.codex/AGENTS.md` 里加一行「视频任务先读 reelforge-duo 的 SKILL.md」即可。
 
+DSH 用户同理：`~/.dsh/skills/` 装 `reelforge` / `reelforge-duo` / `reelforge-runner`，
+`~/.dsh/AGENTS.md` 里指向 `reelforge-duo`。duo 的 `duo.py` 会自己在
+`.workbuddy` / `.dsh` / `.codex` / `.claude` / `.gemini` 里找总控脚本，
+也可以用 `REELFORGE_HOME` 指定。
+
 ## 5. 换一套 agent
 
 | 角色 | 可替换为 | skill 放哪 |

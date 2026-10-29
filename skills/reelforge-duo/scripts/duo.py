@@ -22,10 +22,30 @@ from pathlib import Path
 
 
 def reelforge_home() -> Path:
+    """找总控 skill（duo 依赖它的 state/similarity/pack_task 脚本）。
+
+    按 agent 的 skill 目录依次找，谁装了就算谁的。
+    """
     env = os.environ.get("REELFORGE_HOME")
     if env:
-        return Path(env).expanduser()
-    return Path.home() / ".workbuddy" / "skills" / "reelforge"
+        p = Path(env).expanduser()
+        if (p / "scripts" / "state.py").exists():
+            return p
+    home = Path.home()
+    cands = [
+        home / ".workbuddy" / "skills" / "reelforge",
+        home / ".dsh" / "skills" / "reelforge",
+        home / ".codex" / "skills" / "reelforge",
+        home / ".claude" / "skills" / "reelforge",
+        home / ".gemini" / "antigravity" / "skills" / "reelforge",
+    ]
+    for c in cands:
+        if (c / "scripts" / "state.py").exists():
+            return c
+    raise SystemExit(
+        "[duo] 找不到总控 skill（reelforge）。装一份：bash install.sh --dsh\n"
+        "        或设环境变量 REELFORGE_HOME 指向它。"
+    )
 
 
 def rf_scripts() -> Path:
