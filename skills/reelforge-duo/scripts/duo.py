@@ -81,12 +81,13 @@ def cmd_start(a) -> int:
 
 def cmd_handoff(a) -> int:
     work = Path(a.work)
-    rc, out = run_rf("pack_task.py", "writer", "--work", str(work),
-                     "--persona", a.persona, "--budget", str(a.budget))
-    if rc != 0:
-        print(out)
-        return rc
     src = work / "tasks" / "writer.md"
+    if a.fresh or not src.exists():
+        rc, out = run_rf("pack_task.py", "writer", "--work", str(work),
+                         "--persona", a.persona, "--budget", str(a.budget))
+        if rc != 0:
+            print(out)
+            return rc
     if not src.exists():
         print("[duo] 没生成 tasks/writer.md")
         return 2
@@ -101,11 +102,21 @@ def cmd_handoff(a) -> int:
     extra = []
     if a.topic:
         extra.append(f"## 本次要回答的问题\n\n{a.topic}\n")
+    # 执行侧补充的要求与已核实事实
+    req = work / "requirements.md"
+    if req.exists():
+        extra.append("## 本片必须覆盖的段落与写作口径（执行侧补充）\n\n"
+                     + req.read_text(encoding="utf-8").strip() + "\n")
+    facts = work / "facts.md"
+    if facts.exists():
+        extra.append("## 工程侧已核实的事实（可直接引用，别在口播里念价格）\n\n"
+                     + facts.read_text(encoding="utf-8").strip() + "\n")
     if a.link:
         extra.append("## 本次要检索的链接（先检索取证，写进 source_digest.md）\n\n"
                      + "\n".join(f"- {u}" for u in a.link) + "\n")
     if extra:
-        body = body.replace("## 约束", "\n".join(extra) + "\n## 约束", 1)
+        anchor = "## 约束" if "## 约束" in body else "## 硬约束"
+        body = body.replace(anchor, "\n".join(extra) + "\n" + anchor, 1)
     dst = work / "handoff.writer.md"
     dst.write_text(header + body, encoding="utf-8")
     (work / "links.json").write_text(json.dumps({
@@ -217,6 +228,7 @@ def main() -> int:
     p.add_argument("--title", default="")
     p.add_argument("--topic", default="", help="本次要回答的问题（给写稿 agent）")
     p.add_argument("--link", action="append", default=[], help="要检索的链接，可多次")
+    p.add_argument("--fresh", action="store_true", help="重新生成 tasks/writer.md（默认保留执行者改过的版本）")
     p.set_defaults(fn=cmd_handoff)
 
     p = sub.add_parser("intake")

@@ -93,6 +93,15 @@ def writer_pack(a) -> str:
 {budget}- 不许出现「全网最强 / 第一 / 必买」这类词
 - 不许抄参考片的句子；结构相似度会算分
 
+## 三层自检（wvp 原生流程，不许跳）
+
+1. **形式层**：对照 SCRIPT-STYLE.md 的 8 条原则
+2. **风骨层**：对照去 AI 味五类（最重要）
+3. **念出来测试**（终极标准）：逐句念，念不顺就改
+
+有 Agent Teams 就开一个 reviewer agent 审这三层；没有就自己严格逐项核查。
+拿到结论先改稿，再产出 outline。
+
 ## 产出（全部落在工作目录）
 - `script.md`：口播稿，按 `---` 切节拍
 - `script.json`：契约见 {SKILL / 'references' / 'script-contract.md'}
