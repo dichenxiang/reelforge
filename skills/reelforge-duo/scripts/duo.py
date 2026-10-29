@@ -94,7 +94,7 @@ def cmd_handoff(a) -> int:
     header = f"""<!-- reelforge-duo · 交给写稿 agent 的交接稿 -->
 <!-- 片名：{a.title or work.name} ｜ 生成时间：{now()} -->
 <!-- 用法：把本文件整段粘给写稿 agent（Antigravity 等）。
-     写完让它把 script.md / script.json / writer-notes.md 三个文件交回你，
+     写完让它把 source_digest.md / script.md / outline.md / script.json / writer-notes.md 五个文件交回你，
      放到 {work.resolve()}/ 下，然后执行：python duo.py intake --work {work} -->
 
 """

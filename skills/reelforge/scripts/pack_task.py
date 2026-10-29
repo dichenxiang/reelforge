@@ -51,7 +51,7 @@ def writer_pack(a) -> str:
     ref = (work / "reference.json")
     budget = f"""- 参考度目标 {a.budget} 分，硬上限 60 分（`similarity.py` 会验）
 - 有参考时：结构可借、手法 ≤2 个，**文案必须原创**
-""" if ref.exists() or a.reference else "- 本次没有参考片，全原创\n"
+""" if ref.exists() or a.reference else "- 参考稿只提供写法；内容必须原创，不得抄原句（结构相似度会算分）\n"
     persona = persona_block(a.persona)
 
     return f"""# 任务：写口播稿（reelforge-writer）
