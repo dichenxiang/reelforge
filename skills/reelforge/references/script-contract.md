@@ -46,7 +46,7 @@ python <reelforge>/scripts/personas.py --prompt ace     # 或 gatekeeper
 | 字段 | 必填 | 说明 |
 |---|---|---|
 | `title` | ✅ | 片子标题 |
-| `duration_sec` | ✅ | 目标时长：短片 15–60；长片 60–1200（>1200 要拆多集） |
+| `duration_sec` | ✅ | 写完后的实际估算时长（中文约 5 字/秒）；**先写稿再定时长** |
 | `aspect` | ✅ | 固定 `16:9`（wvp 硬约束） |
 | `beats[].id` | ✅ | `s1`、`s2`… 顺序编号 |
 | `beats[].text` | ✅ | 口播原文；一屏 ≤14 个汉字 |
@@ -68,12 +68,12 @@ python <reelforge>/scripts/personas.py --prompt ace     # 或 gatekeeper
 
 需要控制的地方写 `notes` 里，例如「这句别上屏」「这里要留一个数据对比」。
 
-## 长片怎么写（>2 分钟）
+## 长度与分章
 
-- `script.md` 仍是一整篇口播稿，但内部按章节分段（章节之间用一句过渡）
-- `outline.md` 里出**章节表**：每章 id、标题、时长、全片起点、衔接方式、素材清单
+- **不预设时长**：内容讲完为止；短稿不必拉长，长稿不必压短
+- 内容超过一章时，`outline.md` 里出**章节表**：每章 id、标题、时长、全片起点、衔接方式、素材清单
 - `script.json` 的 `beats[]` 跨章连续编号；每章的 step 单独连续
-- 章节骨架（怎么分章）看本号的 patterns 文件第 8 节
+- 怎么分章看本号 patterns 文件最后一节
 
 ## 配套文件
 
