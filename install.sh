@@ -13,6 +13,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 UHOME="${REELFORGE_USER_HOME:-${USERPROFILE:-$HOME}}"
 FORCE=0
 WITH_WVP=0
+WITH_HUMANIZER=0
 TARGETS=()
 
 usage() {
@@ -29,6 +30,7 @@ usage() {
 
 其它：
   --with-wvp      稀疏克隆 web-video-presentation 到 skills/reelforge/vendor
+  --with-humanizer  装 humanizer-zh（去 AI 味清洗）到 workbuddy / antigravity / codex
   --force         覆盖已存在的同名 skill（默认先备份为 *.bak-日期）
 EOF
 }
@@ -38,6 +40,7 @@ while [[ $# -gt 0 ]]; do
     --workbuddy|--antigravity|--dsh|--claude|--codex) TARGETS+=("${1#--}") ;;
     --all) TARGETS=(workbuddy antigravity dsh claude codex) ;;
     --with-wvp) WITH_WVP=1 ;;
+    --with-humanizer) WITH_HUMANIZER=1 ;;
     --force) FORCE=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "未知参数：$1"; usage; exit 1 ;;
@@ -120,6 +123,20 @@ install_for() {
 for t in "${TARGETS[@]:-}"; do
   [[ -n "$t" ]] && install_for "$t"
 done
+
+# 可选：装 humanizer-zh（去 AI 味清洗，写稿第 ② 步用）
+if [[ "$WITH_HUMANIZER" -eq 1 ]]; then
+  for dest in "$UHOME/.workbuddy/skills" "$UHOME/.gemini/antigravity/skills" "$UHOME/.codex/skills"; do
+    mkdir -p "$dest"
+    if [[ -d "$dest/humanizer-zh" ]]; then
+      echo "  · humanizer-zh 已存在：$dest/humanizer-zh"
+    else
+      git clone --depth 1 https://github.com/op7418/Humanizer-zh.git "$dest/humanizer-zh" >/dev/null 2>&1 \
+        && echo "  ✓ humanizer-zh → $dest/humanizer-zh" \
+        || echo "  ✗ humanizer-zh 安装失败（$dest）"
+    fi
+  done
+fi
 
 # 配置：装到目标目录后，在目标里从 example 生成（不要污染仓库）
 ensure_config() {

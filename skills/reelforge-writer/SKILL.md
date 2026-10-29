@@ -61,14 +61,26 @@ description: 写口播稿的专用 skill。输入主题或参考片证据 + 账�
 1. **读人设**：任务包里的「账号人设」段落（口吻、价值观、态度锚点句、禁词表）；
    没贴就自己跑 `python <reelforge>/scripts/personas.py --prompt <id>`
 2. 读 `references/writing-rules.md`（本项目额外 4 条约束）
-3. 如果装了 humanizer-zh：读它的 `SKILL.md`，把规则叠加进来
-4. 有参考片：先写「借鉴清单」——借哪 2–3 个结构动作，明确不借什么
-5. 写 `script.md`：`---` 分节拍，每拍 1–2 句
-6. **三层自检**（形式 → 风骨 → 念出来），按 fail 项改稿；有 Teams 就开 reviewer agent 审
-7. 写 `outline.md`：按 `OUTLINE-FORMAT.md`（章节、每步屏幕内容、信息池、素材清单）
-8. 写 `script.json`：字段见总控的 `references/script-contract.md`
-9. 写 `writer-notes.md`：借鉴清单、放弃项、自评参考度
-10. 跑相似度审计，超线就重写（不是换同义词，是换结构）
+3. 有参考片：先写「借鉴清单」——借哪 2–3 个结构动作，明确不借什么
+4. **检索取证** → `source_digest.md`（给了链接就必须先做）
+5. **写稿** → `script.md`（`---` 分节拍，每拍 1–2 句）
+
+### 收尾四步（顺序固定，不许跳）
+
+| 步 | 做什么 | 权威来源 | 产出 |
+|---|---|---|---|
+| ① 三层自检 | 形式层 → 风骨层 → **念出来测试**，按 fail 项改稿 | SCRIPT-STYLE.md | 改后的 `script.md` |
+| ② **去 AI 味清洗** | 只洗句子层，不动结构 | `humanizer-zh`（已装） | 同上 |
+| ③ 写规划与结构 | 开发计划 + 机器读版本 | OUTLINE-FORMAT.md / script-contract | `outline.md`、`script.json` |
+| ④ 参考度审计 | 结构 + 文案重合，超线就重写结构 | `similarity.py` | `writer-notes.md` |
+
+**第 ② 步的指令**（清洗时必须遵守，否则会毁掉口播稿）：
+
+> 只改句子层面的 AI 痕迹。保留 `---` 分节拍、保留每拍的口语节奏、
+> 不要合并节拍、不要改数字和结论、不要补充原文没有的信息、不要把「可能」改成「确定」。
+> 改完自己念一遍，念不顺就还原。
+
+**第 ② 步之后不再改结构**。清洗把节奏弄乱 → 以清洗前为准，那是清洗过头了。
 
 ```bash
 python <reelforge>/scripts/similarity.py --work <work> --target 40 --max 60

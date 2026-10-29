@@ -72,7 +72,8 @@ def writer_pack(a) -> str:
 3. **{pattern_file(a.persona)}** ← **本号真实文案套路（从真实视频逆向），照这个写**
 4. {SKILLS_ROOT / 'reelforge-writer' / 'SKILL.md'}
 5. {SKILLS_ROOT / 'reelforge-writer' / 'references' / 'writing-rules.md'}（本项目额外 4 条约束）
-6. 如存在：{SKILLS_ROOT / 'reelforge-writer' / 'references' / 'humanizer-zh.md'}
+6. **{SKILLS_ROOT / 'humanizer-zh' / 'SKILL.md'}** ← **第 ② 步用（去 AI 味，已装）**
+   （边界说明：{SKILLS_ROOT / 'reelforge-writer' / 'references' / 'humanizer-zh.md'}）
 7. 参考证据（有参考时）：{ref if ref.exists() else '（无）'}
 8. 拆解报告：{work / 'evidence.md'}（有就读）
 
@@ -107,14 +108,26 @@ def writer_pack(a) -> str:
 {budget}- 不许出现「全网最强 / 第一 / 必买」这类词
 - 不许抄参考片的句子；结构相似度会算分
 
-## 三层自检（wvp 原生流程，不许跳）
+## 收尾四步（顺序固定，不许跳）
 
-1. **形式层**：对照 SCRIPT-STYLE.md 的 8 条原则
-2. **风骨层**：对照去 AI 味五类（最重要）
-3. **念出来测试**（终极标准）：逐句念，念不顺就改
+| 步 | 做什么 | 权威来源 |
+|---|---|---|
+| ① 三层自检 | 形式层 → 风骨层 → **念出来测试**，按 fail 项改稿 | SCRIPT-STYLE.md |
+| ② 去 AI 味清洗 | 只洗句子层，不动结构 | humanizer-zh（已装） |
+| ③ 写规划与结构 | outline.md + script.json | OUTLINE-FORMAT.md / script-contract |
+| ④ 参考度审计 | 结构 + 文案重合，超线就重写结构 | similarity.py |
 
-有 Agent Teams 就开一个 reviewer agent 审这三层；没有就自己严格逐项核查。
-拿到结论先改稿，再产出 outline。
+① 的做法：形式层对照 SCRIPT-STYLE.md 的 8 条原则 → 风骨层对照去 AI 味五类（最重要）
+→ 念出来测试（终极标准）：逐句念，念不顺就改。
+有 Agent Teams 就开一个 reviewer agent 审这三层；没有就自己严格逐项核查。拿到结论先改稿。
+
+② 的指令（必须原样转达，否则会毁掉口播稿）：
+
+> 只改句子层面的 AI 痕迹。保留 `---` 分节拍、保留每拍的口语节奏、不要合并节拍、
+> 不要改数字和结论、不要补充原文没有的信息、不要把「可能」改成「确定」。
+> 改完自己念一遍，念不顺就还原。
+
+② 之后不再改结构；清洗把节奏弄乱了以清洗前为准。
 
 ## 产出（全部落在工作目录）
 - `source_digest.md`：检索到的资料与出处（抓不到的如实写「未证实」，不许编）
@@ -122,11 +135,12 @@ def writer_pack(a) -> str:
 - `outline.md`：开发计划，**按 OUTLINE-FORMAT.md 写**（章节、每步屏幕内容、信息池、素材清单）
 - `script.json`：契约见 {SKILL / 'references' / 'script-contract.md'}
 - `writer-notes.md`：借了什么结构、放弃了什么、自评参考度；
-  **第一行必须写 `writer-agent: <你的名字/型号>`**（用于校验稿子确实出自写稿 agent）
+  **第一行必须写 `writer-agent: <你的名字/型号>`**（校验稿子确实出自写稿 agent），
+  再写一行 `humanizer: on/off`（第 ② 步做了没有）
 
 ## 收尾（必须做）
-1. 三层自检（形式 → 风骨 → 念出来），按 fail 项改完稿
-2. 再跑：
+1. 四步收尾全部走完（① 三层自检 → ② 去 AI 味清洗 → ③ outline/json → ④ 审计）
+2. 跑审计：
 ```
 python {SKILL / 'scripts' / 'similarity.py'} --work "{work}" --target {a.budget} --max 60
 ```
