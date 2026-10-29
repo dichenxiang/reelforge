@@ -103,7 +103,9 @@ def writer_pack(a) -> str:
 拿到结论先改稿，再产出 outline。
 
 ## 产出（全部落在工作目录）
-- `script.md`：口播稿，按 `---` 切节拍
+- `source_digest.md`：检索到的资料与出处（抓不到的如实写「未证实」，不许编）
+- `script.md`：口播稿，按 `---` 切节拍（节拍数 = beats 数）
+- `outline.md`：开发计划，**按 OUTLINE-FORMAT.md 写**（章节、每步屏幕内容、信息池、素材清单）
 - `script.json`：契约见 {SKILL / 'references' / 'script-contract.md'}
 - `writer-notes.md`：借了什么结构、放弃了什么、自评参考度；
   **第一行必须写 `writer-agent: <你的名字/型号>`**（用于校验稿子确实出自写稿 agent）
