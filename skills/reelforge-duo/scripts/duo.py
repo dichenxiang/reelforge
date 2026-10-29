@@ -111,6 +111,17 @@ def cmd_handoff(a) -> int:
     if facts.exists():
         extra.append("## 工程侧已核实的事实（可直接引用，别在口播里念价格）\n\n"
                      + facts.read_text(encoding="utf-8").strip() + "\n")
+    if a.reference:
+        extra.append(
+            "## 参考稿（学写法，不抄句子）\n\n"
+            "以下是我们自己号的真实口播转写，Antigravity 可直接读这些文件：\n\n"
+            + "\n".join(f"- `{r}`" for r in a.reference)
+            + "\n\n怎么用：\n"
+            "- **学**：骨架顺序、句长与节奏、数字密度、每节信息量、称呼与口语连接词、收尾方式\n"
+            "- **不学**：原句、同义替换句、具体案例与数字（这些只是结构参照）\n"
+            "- 你稿子里的内容只能来自本次检索结果（`source_digest.md`）\n"
+            "- 参考度默认 40、硬上限 60，`similarity.py` 会算，超了必须换结构\n"
+        )
     if a.link:
         extra.append("## 本次要检索的链接（先检索取证，写进 source_digest.md）\n\n"
                      + "\n".join(f"- {u}" for u in a.link) + "\n")
@@ -229,6 +240,7 @@ def main() -> int:
     p.add_argument("--topic", default="", help="本次要回答的问题（给写稿 agent）")
     p.add_argument("--link", action="append", default=[], help="要检索的链接，可多次")
     p.add_argument("--fresh", action="store_true", help="重新生成 tasks/writer.md（默认保留执行者改过的版本）")
+    p.add_argument("--reference", action="append", default=[], help="参考稿（转写文件）路径，可多次")
     p.set_defaults(fn=cmd_handoff)
 
     p = sub.add_parser("intake")
