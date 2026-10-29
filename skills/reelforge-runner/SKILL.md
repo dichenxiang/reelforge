@@ -29,6 +29,30 @@ wvp 在 `<reelforge>/vendor/web-video-presentation`；没有就跑总控的安�
 
 ## 阶段
 
+### P0 开工前自检（先做，别等做到一半才发现）
+
+在动手改代码之前，把这几件事查清楚并报给用户；**任何降级方案都要先说，不要默默换掉**：
+
+```bash
+# 1) 旁白能力（决定这条路走不走得通）
+python <reelforge>/scripts/tts_once.py --text "测试一下旁白" --out probe.mp3 --persona <ace|gatekeeper>
+
+# 2) 素材尺寸是否够用（截图/商品图能不能撑满 1920×1080）
+python - <<'PY'
+from PIL import Image
+import glob, sys
+for p in glob.glob(r"<素材目录>/**/*.*", recursive=True):
+    try:
+        w, h = Image.open(p).size
+        print(f"{p}  {w}x{h}")
+    except Exception:
+        pass
+PY
+```
+
+自检结论要写进汇报：旁白用什么音色（IndexTTS 克隆 / edge 兜底）、素材怎么呈现
+（浏览器窗口框 / 手机框 / 画面内放大 ≤1.5×）、**时长不由你压缩**。
+
 ### P0 建工程
 
 ```bash
@@ -61,6 +85,42 @@ python <reelforge>/scripts/state.py gate --work "$W" --name chapter_gate \
 - 成员 ≤4；每人只改自己的章节目录，**不许动 `chapters.ts`**
 - captain 在集成阶段统一注册章节、跑 `npx tsc --noEmit`
 - 详细协议见 `references/wvp-execution.md`
+
+### P3 音频（旁白：必须用 IndexTTS 克隆音色）
+
+**唯一允许的旁白来源是本机 IndexTTS 克隆音色**，对应账号人设：
+
+| 人设 | 参考音频 | 说明 |
+|---|---|---|
+| ace（阿测） | `D:/indexTTS/voices/ace_ref.wav` | 20 多岁男声，偏快 |
+| gatekeeper（把关学长） | `D:/indexTTS/voices/gate_ref.wav` | 沉稳男声，偏慢 |
+
+**禁止使用 Windows SAPI（Huihui / KangKang / Yaoyao 等）或任何系统音色**——
+那些是机械音，和账号人设不符。也不要因为「服务没在跑」就退化成系统配音：
+IndexTTS 服务没起时**会自动拉起**（约 40 秒加载），等它就行。
+
+先自检（一条命令判断能不能用）：
+
+```bash
+python <reelforge>/scripts/tts_once.py --text "测试一下旁白" --out /tmp/probe.mp3 --persona ace
+```
+
+能出 mp3 就说明服务、参考音频、ffmpeg 都正常。报「连不上」时看 `%TEMP%\vf-tts-server.log`。
+
+正式合成：
+
+```bash
+cd "$W/presentation"
+npm run extract-narrations
+PRESENTATION_TTS=indextts TTS_PERSONA=<ace|gatekeeper> npm run synthesize-audio
+```
+
+| 问题 | 处理 |
+|---|---|
+| 某段时长不合 | 回 outline 调 step 数，**不许用 SAPI 顶替，也不许为压时长删内容** |
+| 想整体加速/减速 | 改 `personas.yaml` 的 `voice.rate`，重合成，不要在视频里做变速 |
+| 服务起不来 | 手动双击 `D:/indexTTS/extracted/IndexTTS2.0_v3/start_server.bat`，再试 |
+| 真没有 IndexTTS 的机器 | 才用 edge-tts（`--provider edge`），并在汇报里注明「用的是 edge 兜底」 |
 
 ### P3 音频
 
@@ -125,5 +185,6 @@ python <reelforge>/scripts/state.py set --work "$W" --stage qa --status done --o
 | 文件 | 何时读 |
 |---|---|
 | `references/wvp-execution.md` | 开工前、并行前 |
+| `<reelforge>/references/tts.md` | 合成旁白前（IndexTTS 服务、参考音频、故障排查） |
 | `<reelforge>/vendor/web-video-presentation/SKILL.md` | Phase 2–4 细节 |
 | `<reelforge>/vendor/web-video-presentation/references/CHAPTER-CRAFT.md` | 写每一章前 |

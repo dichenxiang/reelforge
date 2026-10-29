@@ -41,6 +41,17 @@ python scripts/tts.py --work work/<slug> --persona ace --provider edge    # 没�
 输出 `<work>/showreel/audio/beat_XX.wav` + `narration.wav` + `narration.json`，
 仅作为素材，不再进 wvp 的自动播放链路。
 
+## 不要用系统 TTS
+
+**Windows SAPI（Huihui / KangKang / Yaoyao…）一律不用**。那是机械音，
+和账号人设（阿测 / 把关学长）不符，片子里一听就是机器念的。
+
+判断顺序：
+
+1. IndexTTS（默认，本机 `D:/indexTTS`，两个克隆音色）
+2. 服务没起 → 它会自动拉起，等 40 秒，别改方案
+3. 机器上真的没有 IndexTTS → 才退到 edge-tts，并在汇报里写明「edge 兜底」
+
 ## 服务与显存
 
 - IndexTTS 2.0 打包版在 `D:/indexTTS/extracted/IndexTTS2.0_v3`，8GB 卡加载后约 7GB。
