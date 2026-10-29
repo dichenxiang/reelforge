@@ -1,0 +1,6 @@
+numpy>=1.24
+PyYAML>=6.0
+Pillow>=10.0
+
+# 可选：没有 GPU / 没装 IndexTTS 时的旁白兜底
+# edge-tts>=6.1

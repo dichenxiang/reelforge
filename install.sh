@@ -11,7 +11,9 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Git Bash 的 $HOME 有时被改到 AppData，Windows 上优先用 USERPROFILE
 UHOME="${REELFORGE_USER_HOME:-${USERPROFILE:-$HOME}}"
+CFG="$REPO/skills/reelforge/config"
 FORCE=0
+CHECK_ONLY=0
 WITH_WVP=0
 WITH_HUMANIZER=0
 TARGETS=()
@@ -32,6 +34,7 @@ usage() {
   --with-wvp      稀疏克隆 web-video-presentation 到 skills/reelforge/vendor
   --with-humanizer  装 humanizer-zh（去 AI 味清洗）到 workbuddy / antigravity / codex
   --force         覆盖已存在的同名 skill（默认先备份为 *.bak-日期）
+  --check         只做依赖体检（python/node/ffmpeg/jq/wvp/TTS），不安装
 EOF
 }
 
@@ -41,12 +44,18 @@ while [[ $# -gt 0 ]]; do
     --all) TARGETS=(workbuddy antigravity dsh claude codex) ;;
     --with-wvp) WITH_WVP=1 ;;
     --with-humanizer) WITH_HUMANIZER=1 ;;
+    --check) CHECK_ONLY=1 ;;
     --force) FORCE=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "未知参数：$1"; usage; exit 1 ;;
   esac
   shift
 done
+
+if [[ $CHECK_ONLY -eq 1 ]]; then
+  python "$REPO/skills/reelforge-runner/scripts/preflight.py" || true
+  exit 0
+fi
 
 if [[ ${#TARGETS[@]} -eq 0 && $WITH_WVP -eq 0 ]]; then
   usage
@@ -77,6 +86,17 @@ copy_skill() {
   else
     cp -R "$src" "$dst"
     echo "  ✓ $name → $dst"
+  fi
+}
+
+# 配置：装到目标目录后，只生成 tts.yaml；人设由 personas_init.py 引导生成（不预设作者品牌）
+ensure_config() {
+  local root="$1"
+  local cfg="$root/reelforge/config"
+  [[ -d "$cfg" ]] || return 0
+  if [[ -f "$cfg/tts.example.yaml" && ! -f "$cfg/tts.yaml" ]]; then
+    cp "$cfg/tts.example.yaml" "$cfg/tts.yaml"
+    echo "  生成配置 $cfg/tts.yaml"
   fi
 }
 
@@ -138,19 +158,6 @@ if [[ "$WITH_HUMANIZER" -eq 1 ]]; then
   done
 fi
 
-# 配置：装到目标目录后，在目标里从 example 生成（不要污染仓库）
-ensure_config() {
-  local root="$1"
-  local cfg="$root/reelforge/config"
-  [[ -d "$cfg" ]] || return 0
-  for pair in "personas.example.yaml:personas.yaml" "tts.example.yaml:tts.yaml"; do
-    local ex="${pair%%:*}" real="${pair##*:}"
-    if [[ -f "$cfg/$ex" && ! -f "$cfg/$real" ]]; then
-      cp "$cfg/$ex" "$cfg/$real"
-      echo "  生成配置 $cfg/$real"
-    fi
-  done
-}
 
 # wvp
 if [[ $WITH_WVP -eq 1 ]]; then
@@ -179,20 +186,20 @@ if [[ $WITH_WVP -eq 1 ]]; then
   fi
 fi
 
-# 自检（wvp 已装才跑，否则 probe 会报 vendor 缺失）
-if [[ -d "$REPO/skills/reelforge/vendor/web-video-presentation" ]] && \
-   command -v python >/dev/null 2>&1 && [[ -f "$REPO/skills/reelforge/scripts/probe.py" ]]; then
+# 自检：preflight（缺什么、怎么补，一次说清）
+if command -v python >/dev/null 2>&1 && [[ -f "$REPO/skills/reelforge-runner/scripts/preflight.py" ]]; then
   echo
-  echo "自检："
-  python "$REPO/skills/reelforge/scripts/probe.py" || true
+  echo "依赖体检："
+  python "$REPO/skills/reelforge-runner/scripts/preflight.py" || true
 fi
 
 cat <<EOF
 
 完成。下一步：
-  1) 改配置：$CFG/personas.yaml、$CFG/tts.yaml
-  2) 起第一条：
+  1) 建人设：python "$REPO/skills/reelforge/scripts/personas_init.py"
+  2) （可选）改配音：$CFG/tts.yaml
+  3) 起第一条：
      python "$REPO/skills/reelforge/scripts/state.py" init --work work/demo
      python "$REPO/skills/reelforge/scripts/pack_task.py" writer --work work/demo
-  3) 换 agent / 接 MCP：看 DEPLOY.md
+  4) 换 agent / 接 MCP：看 DEPLOY.md
 EOF
