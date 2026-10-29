@@ -82,6 +82,10 @@ python scripts/analyze.py --url "https://..." --out work/<slug> --frames 24
 
 ## 2 · 写稿（交给 writer）
 
+**检索与取证也归写稿 agent**：网页搜索、读链接、抓正文、做事实核对，
+都由 writer 用它的浏览器能力完成并交回 `source_digest.md`（每条结论标出处）。
+总控不代笔、不自己搜；需要素材与事实时写进任务包让 writer 一起带回来。
+
 ```bash
 python scripts/pack_task.py writer --work work/<slug> --persona ace --budget 40
 ```

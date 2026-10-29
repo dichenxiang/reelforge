@@ -37,10 +37,46 @@ description: 双人模式的视频生产总控。人在前当总控（Antigravit
 
 **每一道门都要停下来问人**，别自己往下推。
 
+## 铁律：执行者不检索、不写稿
+
+这是 duo 模式最容易出错的地方。分工是死的：
+
+| 活 | 谁做 |
+|---|---|
+| 检索网页、读链接、抓资料、做取证 | **写稿 agent（Antigravity）** |
+| 写口播稿、定分镜、写 `script.md` / `script.json` | **写稿 agent** |
+| 建工程、写章节代码、配音、录屏、验收 | 你（执行者） |
+| 拍板：主题、稿子、视觉方向、成片 | 人 |
+
+**你手里没有 `script.md` 之前，一个字都不要写，更不要自己去搜网页。**
+正确顺序永远是：
+
+```
+1. 生成交接稿（把用户给的链接全部写进去）
+2. 停下来，把交接稿交给人 → 人粘给写稿 agent
+3. 写稿 agent 交回：source_digest.md（检索结果）+ script.md + script.json + writer-notes.md
+4. 你只做审计（参考度）与验收，工程、音频、录屏你来做
+```
+
+需要素材/事实/数据时，**不要自己搜**，写进交接稿让写稿 agent 一起带回来。
+（例外：用户明确说「你自己查」时才自己检索，并在 `writer-notes.md` 里注明是你查的。）
+
+如果你的环境里有模板库工具（例如 `eac_library_list` / `eac_template_read`），
+**列模板是可以的**（这是工程侧资源），但画面内容仍然以写稿 agent 的分镜为准。
+
 ## 交接稿长什么样
 
 `duo.py handoff` 产出 `handoff.writer.md`，内容是写稿 agent 需要的一切：
-读哪些规则、人设、参考预算、输出哪三个文件、越界了怎么自检。
+读哪些规则、人设、参考预算、**要检索的链接**、输出哪四个文件、越界了怎么自检。
+
+四个产出文件：
+
+| 文件 | 谁写 | 内容 |
+|---|---|---|
+| `source_digest.md` | 写稿 agent | 检索到的资料、关键事实、每个结论的出处 |
+| `script.md` | 写稿 agent | 口播稿 |
+| `script.json` | 写稿 agent | 机器读版本（拍数、画面描述） |
+| `writer-notes.md` | 写稿 agent | 借鉴清单 + 自评参考度 + `writer-agent: <名字>` 标记 |
 
 人只需要把它的内容整段粘给 Antigravity，再把 Antigravity 产出的
 `script.md` / `script.json` 放回 `work/<slug>/`，然后执行 agent 接着走。

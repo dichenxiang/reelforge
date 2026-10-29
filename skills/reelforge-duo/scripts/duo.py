@@ -77,13 +77,26 @@ def cmd_handoff(a) -> int:
      放到 {work.resolve()}/ 下，然后执行：python duo.py intake --work {work} -->
 
 """
+    body = src.read_text(encoding="utf-8")
+    extra = []
+    if a.topic:
+        extra.append(f"## 本次要回答的问题\n\n{a.topic}\n")
+    if a.link:
+        extra.append("## 本次要检索的链接（先检索取证，写进 source_digest.md）\n\n"
+                     + "\n".join(f"- {u}" for u in a.link) + "\n")
+    if extra:
+        body = body.replace("## 约束", "\n".join(extra) + "\n## 约束", 1)
     dst = work / "handoff.writer.md"
-    dst.write_text(header + src.read_text(encoding="utf-8"), encoding="utf-8")
+    dst.write_text(header + body, encoding="utf-8")
+    (work / "links.json").write_text(json.dumps({
+        "topic": a.topic or "", "links": a.link or [],
+        "persona": a.persona, "budget": a.budget, "created_at": now(),
+    }, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({
         "ok": True,
         "handoff": str(dst),
         "paste_to": "写稿 agent（Antigravity）",
-        "expect_back": ["script.md", "script.json", "writer-notes.md"],
+        "expect_back": ["source_digest.md", "script.md", "script.json", "writer-notes.md"],
         "then": f"python duo.py intake --work {work}",
     }, ensure_ascii=False, indent=2))
     return 0
@@ -91,7 +104,21 @@ def cmd_handoff(a) -> int:
 
 def cmd_intake(a) -> int:
     work = Path(a.work)
-    missing = [f for f in ("script.md", "script.json") if not (work / f).exists()]
+    missing = [f for f in ("script.md", "script.json", "writer-notes.md") if not (work / f).exists()]
+    # 校验稿子确实出自写稿 agent
+    notes = work / "writer-notes.md"
+    if notes.exists():
+        txt = notes.read_text(encoding="utf-8", errors="replace")
+        if "writer-agent:" not in txt:
+            missing.append("writer-notes.md 里缺少 `writer-agent:` 标记（稿子可能不是写稿 agent 写的）")
+    links_file = work / "links.json"
+    if links_file.exists():
+        try:
+            links = json.loads(links_file.read_text(encoding="utf-8")).get("links") or []
+        except Exception:
+            links = []
+        if links and not (work / "source_digest.md").exists():
+            missing.append("source_digest.md（给了检索链接，写稿 agent 必须交检索结果）")
     if missing:
         print(json.dumps({
             "ok": False,
@@ -167,6 +194,8 @@ def main() -> int:
     p.add_argument("--persona", default="ace")
     p.add_argument("--budget", type=int, default=40)
     p.add_argument("--title", default="")
+    p.add_argument("--topic", default="", help="本次要回答的问题（给写稿 agent）")
+    p.add_argument("--link", action="append", default=[], help="要检索的链接，可多次")
     p.set_defaults(fn=cmd_handoff)
 
     p = sub.add_parser("intake")
