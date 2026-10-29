@@ -1,5 +1,9 @@
 # 部署说明
 
+> 想让 AI 自动部署？把仓库地址发给它并说「读 `AGENT_DEPLOY.md`，按步骤部署」。
+> 本文件是人读的背景与原理；`AGENT_DEPLOY.md` 是给 agent 执行的手册。
+
+
 ReelForge 把短视频生产拆成三个角色。**角色和具体产品解耦**：
 你可以用 WorkBuddy + Antigravity + DeepSeek Harness（默认组合），
 也可以换成 Claude Code + 任意写作模型 + Codex，只要满足角色能力。

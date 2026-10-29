@@ -60,6 +60,15 @@ python skills/reelforge/scripts/pack_task.py runner --work work/demo --render A 
 
 详细流程见 [`skills/reelforge/SKILL.md`](skills/reelforge/SKILL.md)。
 
+## 让 AI 帮你部署
+
+把仓库地址和这句话发给任意能跑命令的 AI：
+
+> 读 `AGENT_DEPLOY.md`，按步骤部署；缺什么自己装，要拍板的问我。
+
+它会自动克隆、探测你装了哪些 agent、在 §2 问你 5 个问题（装给谁 / 人设 / 配音 / 有没有 EAC / trio 还是 duo），
+然后装 skill、跑依赖体检、生成本地人设、做一条 5 秒录屏验证，最后按模板汇报。部署文档是给 AI 执行的，人只要看 `docs/QUICKSTART.md`。
+
 ## 两种模式，四个 skill
 
 > 写稿规范**不另立**：口播风格、三层自检（形式 / 风骨 / 念出来）、

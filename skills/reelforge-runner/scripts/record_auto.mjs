@@ -19,7 +19,7 @@
  *
  * 页面没有 .pb-* 元素也能录：时间轴会退化为空样本，mix_timeline 会改为等距切分。
  */
-import { chromium } from 'playwright-core';
+import { createRequire } from 'node:module';
 import { mkdirSync, writeFileSync, mkdtempSync, copyFileSync, renameSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -45,6 +45,15 @@ const pipSel = arg('pip-selector', '.pb-pip-on');
 const browserName = arg('browser', 'msedge');
 const marker = !has('no-marker');
 const tmp = mkdtempSync(join(tmpdir(), 'rf-rec-'));
+
+// playwright-core 可能装在“工程目录”而不是本脚本目录：先按脚本解析，再按 cwd 解析
+let chromium;
+try {
+  ({ chromium } = await import('playwright-core'));
+} catch {
+  const req = createRequire(join(process.cwd(), 'noop.js'));
+  ({ chromium } = req('playwright-core'));
+}
 
 const launchOpts = {
   headless: true,

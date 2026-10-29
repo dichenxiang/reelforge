@@ -26,6 +26,7 @@
 ```bash
 git clone <REPO_URL> reelforge
 cd reelforge
+REPO="$(pwd)"                        # 后面所有命令都用 $REPO
 uname -s 2>/dev/null || ver          # Windows 用 Git Bash
 python --version; node -v; npm -v; jq --version; ffmpeg -version | head -1; git --version
 ```
@@ -97,7 +98,11 @@ python -m pip install edge-tts                     # 可选：无 GPU 的旁白�
 | Ubuntu | `sudo apt install ffmpeg jq nodejs npm` |
 
 没有 sudo / 装不了 → 停下告诉用户缺什么，**不要改系统源**。
-浏览器优先用本机 Edge/Chrome；没有就 `npx playwright install chromium`。
+录屏用 `playwright-core`（装在**工程目录**，不要全局）：
+```bash
+cd <你的 presentation 工程> && npm i -D playwright-core
+```
+脚本会先按自身目录、再按当前目录找它；浏览器优先用本机 Edge，没有就 `npx playwright install chromium`。
 
 ---
 
@@ -185,14 +190,14 @@ python skills/reelforge/scripts/pack_task.py writer --work /tmp/rf-smoke   # 应
 ls -la /tmp/probe.mp3
 ```
 
-再跑一条**真录 5 秒**（验证浏览器 + 录屏链路，不依赖 wvp）：
+再跑一条**真录 5 秒**（验证浏览器 + 录屏链路，不依赖 wvp、不需要起服务器）：
 
 ```bash
 mkdir -p /tmp/rf-web && cd /tmp/rf-web
 printf '<!doctype html><meta charset="utf-8"><body style="background:#0a0d16;color:#dfff43;font:48px sans-serif;display:grid;place-items:center;height:100vh">ReelForge smoke</body>' > index.html
-python -m http.server 5199 >/tmp/rf-http.log 2>&1 &
-sleep 2
-node "$REPO/skills/reelforge-runner/scripts/record_auto.mjs" --url http://127.0.0.1:5199/ --duration 5 --out /tmp/rf-rec.webm --no-marker
+cd /tmp/rf-web && npm init -y >/dev/null 2>&1 && npm i -D playwright-core >/dev/null 2>&1
+URL=$(python -c "from pathlib import Path; print(Path('index.html').resolve().as_uri())")
+node "$REPO/skills/reelforge-runner/scripts/record_auto.mjs" --url "$URL" --duration 5 --out /tmp/rf-rec.webm --no-marker
 ls -la /tmp/rf-rec.webm
 ```
 
@@ -212,6 +217,7 @@ ls -la /tmp/rf-rec.webm
 | `No such file: vendor/web-video-presentation` | `bash install.sh --with-wvp`（失败用 zip，见 §3） |
 | 中文乱码 | 终端改 UTF-8，或设 `PYTHONIOENCODING=utf-8` |
 | 录屏是旧章节 | 用 `vite preview` 的生产构建录，不要用 dev server |
+| `python -m http.server` 报 `WinError 10013` | Windows 端口被占/保留；改用 `file://` 页面或换端口 |
 
 ---
 
