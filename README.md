@@ -48,6 +48,11 @@ python skills/reelforge/scripts/pack_task.py writer --work work/demo --persona a
 
 ## 两种模式，四个 skill
 
+> 写稿规范**不另立**：口播风格、三层自检（形式 / 风骨 / 念出来）、
+> `outline.md` 格式，全部直接用上游 `web-video-presentation` 的
+> `references/SCRIPT-STYLE.md` 与 `references/OUTLINE-FORMAT.md`；
+> 我们只额外加 4 条（16:9、单屏 ≤14 字、人设禁词、参考度 ≤60）。
+
 | 模式 | 总控 | 组成 | 适合 |
 |---|---|---|---|
 | **trio** | WorkBuddy（agent 当总控） | `reelforge` + `reelforge-writer` + `reelforge-runner` | 批量、无人值守，手机上也能盯 |

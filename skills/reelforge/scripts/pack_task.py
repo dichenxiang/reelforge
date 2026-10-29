@@ -57,12 +57,17 @@ def writer_pack(a) -> str:
 - 人设：{a.persona}（人设段落已经贴在下面，**照这个口吻写**）
 - 素材库清单：{work / 'assets.json'}（有就参考已有素材，不要重复找图）
 
-## 必读（按顺序）
-1. {SKILLS_ROOT / 'reelforge-writer' / 'SKILL.md'}
-2. {SKILLS_ROOT / 'reelforge-writer' / 'references' / 'writing-rules.md'}
-3. 如存在：{SKILLS_ROOT / 'reelforge-writer' / 'references' / 'humanizer-zh.md'}
-4. 参考证据（有参考时）：{ref if ref.exists() else '（无）'}
-5. 拆解报告：{work / 'evidence.md'}（有就读）
+## 必读（按顺序，第 1、2 项是权威）
+
+1. **{SKILL / 'vendor' / 'web-video-presentation' / 'references' / 'SCRIPT-STYLE.md'}**
+   ← **口播怎么写，唯一权威。全文读，别复述、别改写、别另立规则**
+2. **{SKILL / 'vendor' / 'web-video-presentation' / 'references' / 'OUTLINE-FORMAT.md'}**
+   ← outline.md 的格式规范
+3. {SKILLS_ROOT / 'reelforge-writer' / 'SKILL.md'}
+4. {SKILLS_ROOT / 'reelforge-writer' / 'references' / 'writing-rules.md'}（本项目额外 4 条约束）
+5. 如存在：{SKILLS_ROOT / 'reelforge-writer' / 'references' / 'humanizer-zh.md'}
+6. 参考证据（有参考时）：{ref if ref.exists() else '（无）'}
+7. 拆解报告：{work / 'evidence.md'}（有就读）
 
 ## 账号人设（照这个写，禁词不许出现）
 
@@ -77,8 +82,14 @@ def writer_pack(a) -> str:
 3. 抓不到或互相矛盾的，写「未证实 / 有冲突」，**不许编**
 4. 检索完再进入写稿；不要一边搜一边编稿
 
-## 约束
-- 画幅 16:9，口播 5 字/秒估算，单段 ≤14 个汉字上屏
+## 风格听谁的（重要）
+
+**口播风格、节奏、句式、留白，全部按 SCRIPT-STYLE.md。**
+不要按你自己的习惯写，不要模仿别的账号，不要把书面语改短了就算口播。
+写完必须按它的三层自检走：形式层 → 风骨层 → **念出来测试**（念不顺就重写）。
+
+## 约束（本项目只加这四条）
+- 画幅 16:9，单段 ≤14 个汉字上屏，口播 5 字/秒估算
 {budget}- 不许出现「全网最强 / 第一 / 必买」这类词
 - 不许抄参考片的句子；结构相似度会算分
 
@@ -89,7 +100,8 @@ def writer_pack(a) -> str:
   **第一行必须写 `writer-agent: <你的名字/型号>`**（用于校验稿子确实出自写稿 agent）
 
 ## 收尾（必须做）
-写完先自检，再跑：
+1. 三层自检（形式 → 风骨 → 念出来），按 fail 项改完稿
+2. 再跑：
 ```
 python {SKILL / 'scripts' / 'similarity.py'} --work "{work}" --target {a.budget} --max 60
 ```

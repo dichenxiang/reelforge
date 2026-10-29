@@ -77,13 +77,19 @@ def main() -> int:
     if not beats:
         raise SystemExit("[wvp] script.json 没有可用的 beats")
 
-    targets = [work / "script.md", work / "outline.md", work / "article.md"]
+    # writer 若已按 OUTLINE-FORMAT.md 产出 outline.md，就不要用粗版覆盖它
+    if (work / "outline.md").exists() and not a.force:
+        print("[wvp] outline.md 已存在（写稿 agent 产出），保留；如需覆盖加 --force")
+    targets = [work / "script.md", work / "article.md"]
+    if not (work / "outline.md").exists():
+        targets.append(work / "outline.md")
     if any(t.exists() for t in targets) and not a.force:
         raise SystemExit("[wvp] script.md / outline.md / article.md 已存在，要覆盖加 --force")
 
     chapter_id = work.name.replace("_", "-")[:24] or "main"
     (work / "script.md").write_text(build_script_md(script, beats), encoding="utf-8")
-    (work / "outline.md").write_text(build_outline_md(script, beats, chapter_id), encoding="utf-8")
+    if not (work / "outline.md").exists() or a.force:
+        (work / "outline.md").write_text(build_outline_md(script, beats, chapter_id), encoding="utf-8")
 
     ev_md = work / "evidence.md"
     if ev_md.exists():

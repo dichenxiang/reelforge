@@ -4,6 +4,10 @@
 是**出片阶段**由 wvp 的 direction 决定的，不在这里，别为了填字段而写稿。
 
 > 人设不在这个文件里，在 `config/personas.yaml`。写稿前必须先读人设（见下）。
+>
+> **口播风格不在这里，也不在我们的 writing-rules 里**：
+> 以 `vendor/web-video-presentation/references/SCRIPT-STYLE.md` 为唯一权威。
+> 本文件只是把「写完之后落成什么结构」定下来。
 
 ## 先读人设（必做）
 
@@ -69,7 +73,8 @@ python <reelforge>/scripts/personas.py --prompt ace     # 或 gatekeeper
 | 文件 | 谁写 | 内容 |
 |---|---|---|
 | `source_digest.md` | 写稿 agent | 检索结果与出处 |
-| `script.md` | 写稿 agent | 口播稿，`---` 切节拍，节拍数 = beats 数 |
+| `script.md` | 写稿 agent | 口播稿，`---` 切节拍，节拍数 = beats 数（风格按 wvp SCRIPT-STYLE） |
+| `outline.md` | 写稿 agent | 开发计划，按 wvp `OUTLINE-FORMAT.md` 写 |
 | `script.json` | 写稿 agent | 本文件 |
 | `writer-notes.md` | 写稿 agent | 借鉴清单、自评参考度、首行 `writer-agent: <名字>` |
 

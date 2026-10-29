@@ -16,6 +16,17 @@ description: 写口播稿的专用 skill。输入主题或参考片证据 + 账�
 | 人设 | 是 | `ace`（阿测）或 `gatekeeper`（把关学长）；**任务包里已贴好人设段落，照那个口吻写** |
 | 参考度预算 | 否 | 默认 40，上限 60 |
 
+## 权威文件（先读这个）
+
+**口播怎么写，唯一权威是 wvp 的 `references/SCRIPT-STYLE.md`**（任务包里给绝对路径）：
+
+- 风格、节奏、句式、留白、平台变体 → 全部按它
+- 写完必须走它的**三层自检**：形式层 → 风骨层 → **念出来测试**
+- `outline.md` 的格式 → 它的 `references/OUTLINE-FORMAT.md`
+
+`references/writing-rules.md` 只是我们额外加的 4 条约束，
+**不要用它替代 SCRIPT-STYLE，也不要自己另立一套写法**。
+
 ## 硬约束
 
 1. **画幅 16:9**（wvp 固定 1920×1080），不要写竖屏文案。
@@ -35,15 +46,18 @@ description: 写口播稿的专用 skill。输入主题或参考片证据 + 账�
 
 ## 流程
 
-0. **读人设**：任务包里的「账号人设」段落（口吻、价值观、态度锚点句、禁词表）；
+0. **读权威文件**：SCRIPT-STYLE.md 全文 → OUTLINE-FORMAT.md
+1. **读人设**：任务包里的「账号人设」段落（口吻、价值观、态度锚点句、禁词表）；
    没贴就自己跑 `python <reelforge>/scripts/personas.py --prompt <id>`
-1. 读 `references/writing-rules.md`（口播化 + 去 AI 味）
-2. 如果装了 humanizer-zh：读它的 `SKILL.md`，把规则叠加进来
-3. 有参考片：先写「借鉴清单」——借哪 2–3 个结构动作，明确不借什么
-4. 写 `script.md`：`---` 分节拍，每拍 1–2 句
-5. 写 `script.json`：字段见总控的 `references/script-contract.md`
-6. 写 `writer-notes.md`：借鉴清单、放弃项、自评参考度
-7. 跑相似度审计，超线就重写（不是换同义词，是换结构）
+2. 读 `references/writing-rules.md`（本项目额外 4 条约束）
+3. 如果装了 humanizer-zh：读它的 `SKILL.md`，把规则叠加进来
+4. 有参考片：先写「借鉴清单」——借哪 2–3 个结构动作，明确不借什么
+5. 写 `script.md`：`---` 分节拍，每拍 1–2 句
+6. **三层自检**（形式 → 风骨 → 念出来），按 fail 项改稿；有 Teams 就开 reviewer agent 审
+7. 写 `outline.md`：按 `OUTLINE-FORMAT.md`（章节、每步屏幕内容、信息池、素材清单）
+8. 写 `script.json`：字段见总控的 `references/script-contract.md`
+9. 写 `writer-notes.md`：借鉴清单、放弃项、自评参考度
+10. 跑相似度审计，超线就重写（不是换同义词，是换结构）
 
 ```bash
 python <reelforge>/scripts/similarity.py --work <work> --target 40 --max 60
@@ -53,7 +67,8 @@ python <reelforge>/scripts/similarity.py --work <work> --target 40 --max 60
 
 ```
 source_digest.md  检索结果与出处（有检索时必交）
-script.md         口播稿，--- 切节拍
+script.md         口播稿，--- 切节拍（风格按 wvp SCRIPT-STYLE.md）
+outline.md        开发计划，按 wvp OUTLINE-FORMAT.md 写
 script.json       机器读的版本：title/duration_sec/aspect=16:9/beats[]
 writer-notes.md   借鉴与自评（首行写 writer-agent: <你的名字/型号>）
 ```

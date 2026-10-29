@@ -116,7 +116,7 @@ def cmd_handoff(a) -> int:
         "ok": True,
         "handoff": str(dst),
         "paste_to": "写稿 agent（Antigravity）",
-        "expect_back": ["source_digest.md", "script.md", "script.json", "writer-notes.md"],
+        "expect_back": ["source_digest.md", "script.md", "outline.md", "script.json", "writer-notes.md"],
         "then": f"python duo.py intake --work {work}",
     }, ensure_ascii=False, indent=2))
     return 0
@@ -124,7 +124,8 @@ def cmd_handoff(a) -> int:
 
 def cmd_intake(a) -> int:
     work = Path(a.work)
-    missing = [f for f in ("script.md", "script.json", "writer-notes.md") if not (work / f).exists()]
+    missing = [f for f in ("script.md", "script.json", "writer-notes.md", "outline.md")
+               if not (work / f).exists()]
     # 校验稿子确实出自写稿 agent
     notes = work / "writer-notes.md"
     if notes.exists():
