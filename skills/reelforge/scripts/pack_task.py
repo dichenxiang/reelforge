@@ -62,7 +62,8 @@ def writer_pack(a) -> str:
 ## 产出（全部落在工作目录）
 - `script.md`：口播稿，按 `---` 切节拍
 - `script.json`：契约见 {SKILL / 'references' / 'script-contract.md'}
-- `writer-notes.md`：借了什么结构、放弃了什么、自评参考度
+- `writer-notes.md`：借了什么结构、放弃了什么、自评参考度；
+  **第一行必须写 `writer-agent: <你的名字/型号>`**（用于校验稿子确实出自写稿 agent）
 
 ## 收尾（必须做）
 写完先自检，再跑：

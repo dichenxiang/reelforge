@@ -96,6 +96,7 @@ install_for() {
       echo "DeepSeek Harness"
       copy_skill reelforge-runner "$UHOME/.dsh/skills"
       copy_skill reelforge-duo "$UHOME/.dsh/skills"
+      copy_skill reelforge "$UHOME/.dsh/skills"   # duo 依赖总控的脚本（state/similarity/pack_task）
       ;;
     claude)
       echo "Claude Code"
