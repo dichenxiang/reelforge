@@ -230,6 +230,47 @@ def patch_for(provider: str, model: str, effort: str) -> Path:
 
 
 # ---------------------------------------------------------------- run engine
+def _encode_workspace(path: Path) -> str:
+    raw = str(path.resolve())
+    return raw.replace(":", "").replace("\\", "-").replace("/", "-").replace(" ", "-")
+
+
+def default_workspace() -> Path:
+    """DSH 桌面 UI 里那个「默认工作区」。
+
+    会话按 cwd 分组存在 ~/.dsh/sessions/<编码路径>/ 下，所以在默认工作区里跑，
+    桌面 App 就能看到这条会话；换到别的目录（比如临时目录）就会落到 UI 里
+    没有的工作区，界面上根本找不到。
+    """
+    env = os.environ.get("DSH_DEFAULT_WORKSPACE")
+    if env:
+        cand = Path(env).expanduser()
+        if cand.exists():
+            return cand
+    sessions = DSH_HOME / "sessions"
+    candidates = [
+        Path.home() / "Documents" / "deepseek-harness" / "default-workspace",
+        Path.home() / "Documents" / "deepseek-harness",
+    ]
+    for cand in candidates:
+        if cand.exists():
+            return cand
+    # 兜底：在 sessions 目录里找名字像默认工作区的分组
+    if sessions.is_dir():
+        for d in sessions.iterdir():
+            if d.is_dir() and "deepseek-harness" in d.name:
+                return Path.home() / "Documents" / "deepseek-harness" / "default-workspace"
+    return Path.home() / "Documents" / "deepseek-harness" / "default-workspace"
+
+
+def session_workspace_dir(cwd: Path) -> Path:
+    """把 cwd 编码成 ~/.dsh/sessions 下的目录名（用于定位会话文件）。"""
+    sessions = DSH_HOME / "sessions"
+    raw = str(cwd.resolve())
+    enc = raw.replace(":", "").replace("\\", "-").replace("/", "-").replace(" ", "-")
+    return sessions / f"--{enc}--"
+
+
 def default_cwd() -> Path:
     """MCP 启动时的 cwd 一般是当前工作区；若落在工具目录/系统目录，则退到 dsh 默认工作区。"""
     bad_prefixes = [
@@ -363,9 +404,22 @@ def run_task(
     timeout: float,
     session_id: str | None = None,
     provider: str = PROVIDER,
+    session_workspace: str = "default",
 ) -> dict:
     exe, cli = discover()
     patch = patch_for(provider, model, effort)
+    project_cwd = cwd
+    if session_workspace == "default":
+        cwd = default_workspace()
+        if not cwd.exists():
+            cwd = project_cwd
+            session_workspace = "cwd"
+        else:
+            task = (
+                f"[本次任务的项目目录：{project_cwd}\n"
+                "所有文件读写与命令执行都必须在该目录下进行，请先 cd 过去再动手。]\n\n"
+                + task
+            )
     argv = [str(exe), "--expose-internals", str(cli), "headless", "--patch", str(patch), "--json"]
     if session_id:
         argv += ["--session-id", session_id]
@@ -377,7 +431,7 @@ def run_task(
     env.setdefault("PYTHONIOENCODING", "utf-8")
 
     t0 = time.time()
-    log(f"run provider={provider} model={model} effort={effort} cwd={cwd} sid={session_id} len={len(task)}")
+    log(f"run provider={provider} model={model} effort={effort} cwd={cwd} project={project_cwd} ws={session_workspace} sid={session_id}")
     try:
         proc = subprocess.Popen(
             argv,
@@ -473,6 +527,9 @@ def run_task(
         res["error"] = res.get("error") or f"超时（{timeout:.0f}s），已终止进程；任务可能在 Harness 侧未完成"
     res["model"] = model
     res["provider"] = provider
+    res["project_cwd"] = str(project_cwd)
+    res["session_cwd"] = str(cwd)
+    res["session_workspace"] = session_workspace
     res["reasoning_effort"] = effort
     res["cwd"] = str(cwd)
     log(f"done ok={res['ok']} sid={res['session_id']} elapsed={res['elapsed_sec']}")
@@ -556,7 +613,7 @@ JOBS_LOCK = threading.Lock()
 
 
 def job_start(task: str, cwd: Path, model: str, effort: str, timeout: float,
-              provider: str = PROVIDER) -> str:
+              provider: str = PROVIDER, session_workspace: str = "default") -> str:
     jid = "job-" + uuid.uuid4().hex[:12]
     slot = {
         "job_id": jid,
@@ -575,7 +632,8 @@ def job_start(task: str, cwd: Path, model: str, effort: str, timeout: float,
 
     def worker() -> None:
         try:
-            res = run_task(task, cwd, model, effort, timeout, provider=provider)
+            res = run_task(task, cwd, model, effort, timeout, provider=provider,
+                     session_workspace=session_workspace)
             slot["result"] = res
             slot["status"] = "done" if res.get("ok") else "failed"
             index_append(res, task)
@@ -614,6 +672,10 @@ TOOLS = [
                     "type": "string", "enum": list(PROVIDERS), "default": PROVIDER,
                     "description": "模型来源：deepseek-account 官方（默认）；workbuddy / workbuddy-global 走 WorkBuddy 额度",
                 },
+                "session_workspace": {
+                    "type": "string", "enum": ["default", "cwd"], "default": "default",
+                    "description": "default=在 DSH 桌面端「默认工作区」里开会话（桌面 App 看得见）；cwd=直接在给定目录跑（界面里看不到）",
+                },
                 "reasoning_effort": {
                     "type": "string",
                     "enum": ["low", "medium", "high", "max"],
@@ -638,6 +700,10 @@ TOOLS = [
                 "provider": {
                     "type": "string", "enum": list(PROVIDERS), "default": PROVIDER,
                     "description": "模型来源：deepseek-account 官方（默认）；workbuddy / workbuddy-global 走 WorkBuddy 额度",
+                },
+                "session_workspace": {
+                    "type": "string", "enum": ["default", "cwd"], "default": "default",
+                    "description": "default=在 DSH 桌面端「默认工作区」里开会话（桌面 App 看得见）；cwd=直接在给定目录跑（界面里看不到）",
                 },
                 "reasoning_effort": {
                     "type": "string", "enum": ["low", "medium", "high", "max"], "default": DEFAULT_EFFORT,
@@ -671,6 +737,10 @@ TOOLS = [
                 "provider": {
                     "type": "string", "enum": list(PROVIDERS), "default": PROVIDER,
                     "description": "模型来源：deepseek-account 官方（默认）；workbuddy / workbuddy-global 走 WorkBuddy 额度",
+                },
+                "session_workspace": {
+                    "type": "string", "enum": ["default", "cwd"], "default": "default",
+                    "description": "default=在 DSH 桌面端「默认工作区」里开会话（桌面 App 看得见）；cwd=直接在给定目录跑（界面里看不到）",
                 },
                 "reasoning_effort": {
                     "type": "string", "enum": ["low", "medium", "high", "max"], "default": DEFAULT_EFFORT,
@@ -718,6 +788,7 @@ def tool_run(a: dict) -> str:
         float(a.get("timeout") or 900),
         a.get("session_id") or None,
         a.get("provider") or PROVIDER,
+        a.get("session_workspace") or "default",
     )
     index_append(res, task)
     return _fmt(res)
@@ -734,6 +805,7 @@ def tool_start(a: dict) -> str:
         a.get("reasoning_effort") or DEFAULT_EFFORT,
         float(a.get("timeout") or 1800),
         a.get("provider") or PROVIDER,
+        a.get("session_workspace") or "default",
     )
     return json.dumps({"ok": True, "job_id": jid}, ensure_ascii=False)
 
@@ -794,6 +866,7 @@ def tool_continue(a: dict) -> str:
         float(a.get("timeout") or 900),
         session_id=sid,
         provider=a.get("provider") or PROVIDER,
+        session_workspace=a.get("session_workspace") or "default",
     )
     index_append(res, task)
     return _fmt(res)

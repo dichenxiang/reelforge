@@ -57,6 +57,17 @@ WorkBuddy 来源要求 headless profile 也装了插件：
 dsh plugin --profile headless add dsh-connect-workbuddy
 ```
 
+## 会话在桌面 UI 里可见
+
+DSH 把会话按 **cwd 分组**存在 `~/.dsh/sessions/<编码路径>/`。MCP 默认用
+`session_workspace="default"`，即在桌面端的**「默认工作区」**
+（`~/Documents/deepseek-harness/default-workspace`）里开会话，
+所以你在 DSH 界面的「工作区 → 默认工作区」里能直接看到这条会话的实时过程。
+
+项目目录不会因此丢：桥接会把真实项目目录写进任务第一行，并要求 agent 先 cd 过去。
+
+传 `session_workspace="cwd"` 则直接在给定目录跑——快一点，但界面里看不到。
+
 ## 注意
 
 - 同一时间可以起多个 job，但同一个工作目录里并行改代码要自己防冲突

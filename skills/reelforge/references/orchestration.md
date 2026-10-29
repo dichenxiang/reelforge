@@ -84,6 +84,8 @@ start(task=<tasks/runner.md 内容>, cwd=<work 绝对路径>,
       provider="deepseek-account",        # 官方；可切 workbuddy / workbuddy-global
       model="deepseek-flash",             # 官方里 V4.1 Flash 的 id
       reasoning_effort="max", timeout=1800)
+# session_workspace 默认 "default"：会话开在 DSH 桌面端的「默认工作区」里，
+# 你在 DSH 界面能直接看到这条会话的实时过程；项目目录由桥接写进任务开头。
 result(job_id, timeout=900)
 continue_session(session_id, task="用户确认第 1 章，继续第 2..N 章")
 ```
