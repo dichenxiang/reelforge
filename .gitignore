@@ -1,0 +1,26 @@
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+Thumbs.db
+
+# 上游依赖，安装时拉取
+skills/reelforge/vendor/
+
+# 本地配置（含个人路径 / 参考音频）
+skills/reelforge/config/personas.yaml
+skills/reelforge/config/tts.yaml
+skills/reelforge/config/voices/
+
+# 运行产物
+work/
+out/
+*.log
+*.mp4
+*.mp3
+*.wav
+
+# 密钥
+.env
+*.key
+*credentials*

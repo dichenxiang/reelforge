@@ -1,0 +1,14 @@
+# 本地 TTS 引擎配置（可选）。edge 不需要配置。
+#
+# 走 IndexTTS 打包版的服务端：常驻显存，热态约 4 秒/句。
+# 服务没起时 tts.py 会按下面的 start_* 自动拉起（autostart: false）。
+
+http:
+  url: http://127.0.0.1:7860
+  autostart: false
+  start_cwd: ~/.reelforge/indextts
+  start_cmd: ["runtime/python.exe", "server.py", "--port", "7860"]
+  # 服务首次请求会懒加载模型，约 60–90 秒；之后 2–5 秒/句。
+  startup_timeout: 90
+
+# 说明：不再支持“进程内加载权重”。2.5 源码版已删除，统一走上面的 HTTP 服务。

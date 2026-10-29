@@ -1,0 +1,141 @@
+"""生成给写稿 / 执行 agent 的任务包（markdown，可直接贴进会话或落盘让它读）。
+
+    python pack_task.py writer --work work/demo --persona ace --budget 40
+    python pack_task.py runner --work work/demo --theme blueprint --mode A --persona ace
+
+任务包只写“做什么 + 读哪个文件 + 产出什么 + 什么时候停”，
+具体方法论在各自的 skill 里，避免 prompt 越写越长。
+"""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+SKILL = Path(__file__).resolve().parent.parent
+SKILLS_ROOT = SKILL.parent
+
+
+def common(work: Path) -> str:
+    return f"""- 工作目录：{work.resolve()}
+- 状态文件：{work / 'state.json'}（每步更新，见下方命令）
+- 总控 skill：{SKILL}
+"""
+
+
+def writer_pack(a) -> str:
+    work = Path(a.work).resolve()
+    ref = (work / "reference.json")
+    budget = f"""- 参考度目标 {a.budget} 分，硬上限 60 分（`similarity.py` 会验）
+- 有参考时：结构可借、手法 ≤2 个，**文案必须原创**
+""" if ref.exists() or a.reference else "- 本次没有参考片，全原创\n"
+    return f"""# 任务：写口播稿（reelforge-writer）
+
+你是写稿 agent。**只写稿，不写代码、不搭工程。**
+
+## 环境
+{common(work)}- 你的 skill：{SKILLS_ROOT / 'reelforge-writer'}
+- 人设：{a.persona}
+- 素材库清单：{work / 'assets.json'}（有就参考已有素材，不要重复找图）
+
+## 必读（按顺序）
+1. {SKILLS_ROOT / 'reelforge-writer' / 'SKILL.md'}
+2. {SKILLS_ROOT / 'reelforge-writer' / 'references' / 'writing-rules.md'}
+3. 如存在：{SKILLS_ROOT / 'reelforge-writer' / 'references' / 'humanizer-zh.md'}
+4. 参考证据（有参考时）：{ref if ref.exists() else '（无）'}
+5. 拆解报告：{work / 'evidence.md'}（有就读）
+
+## 约束
+- 画幅 16:9，口播 5 字/秒估算，单段 ≤14 个汉字上屏
+{budget}- 不许出现「全网最强 / 第一 / 必买」这类词
+- 不许抄参考片的句子；结构相似度会算分
+
+## 产出（全部落在工作目录）
+- `script.md`：口播稿，按 `---` 切节拍
+- `script.json`：契约见 {SKILL / 'references' / 'script-contract.md'}
+- `writer-notes.md`：借了什么结构、放弃了什么、自评参考度
+
+## 收尾（必须做）
+写完先自检，再跑：
+```
+python {SKILL / 'scripts' / 'similarity.py'} --work "{work}" --target {a.budget} --max 60
+```
+- 通过 → `python {SKILL / 'scripts' / 'state.py'} set --work "{work}" --stage script --status awaiting_user --owner writer`
+- 不通过 → 按 hint 重写，不要只换同义词
+
+最后用 5 行以内汇报：标题、拍数、预估时长、自评参考度、需要用户确认的点。
+"""
+
+
+def runner_pack(a) -> str:
+    work = Path(a.work).resolve()
+    return f"""# 任务：按 wvp 流程出片（reelforge-runner）
+
+你是执行 agent。**只做工程与音频，不改稿、不做审美决策。**
+
+## 环境
+{common(work)}- 你的 skill：{SKILLS_ROOT / 'reelforge-runner'}
+- wvp：{SKILL / 'vendor' / 'web-video-presentation'}
+- 稿子：{work / 'script.md'}
+- outline：{work / 'outline.md'}
+- 素材清单：{work / 'assets.json'}
+
+## 必读（按顺序）
+1. {SKILLS_ROOT / 'reelforge-runner' / 'SKILL.md'}
+2. {SKILL / 'vendor' / 'web-video-presentation' / 'SKILL.md'}（Phase 2–4）
+3. {SKILL / 'vendor' / 'web-video-presentation' / 'references' / 'CHAPTER-CRAFT.md'}
+
+## 参数
+- 主题：{a.theme or '按 outline 推荐'}
+- 开发模式：{a.mode}（第 1 章必须单 agent 做完并停下）
+- 人设音色：{a.persona}
+- 并行：{'用 /agent-teams，第 2..N 章每章一个 task' if a.team else '不开团队'}
+
+## 阶段与停止点
+1. scaffold + 素材投放（`python {SKILL / 'scripts' / 'assets.py'} materialize --work "{work}"`）
+2. 第 1 章做完 → **停**，写 `state.py gate --name chapter_gate`
+3. 用户确认后，第 2..N 章（可并行）
+4. `npm run extract-narrations` → `PRESENTATION_TTS=indextts npm run synthesize-audio`
+5. 音频完成 → **停**，写 `state.py gate --name audio_gate`
+6. 录屏（人工或 `record.mjs`）→ ffprobe 验收 → `state.py set --stage qa --status done`
+
+## 禁止
+- 改 `script.md` / `narrations.ts` 的文案（要改先回总控）
+- 换主题、换画幅、改 wvp 源码
+- 没验收就往下走
+
+汇报格式：当前阶段、产物路径、ffprobe 结果（如有）、下一步等谁。
+"""
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    p = sub.add_parser("writer")
+    p.add_argument("--work", required=True)
+    p.add_argument("--persona", default="ace")
+    p.add_argument("--budget", type=int, default=40)
+    p.add_argument("--reference", action="store_true")
+    p.set_defaults(fn=lambda a: writer_pack(a))
+
+    p = sub.add_parser("runner")
+    p.add_argument("--work", required=True)
+    p.add_argument("--theme", default="")
+    p.add_argument("--mode", default="A", choices=["A", "B", "C"])
+    p.add_argument("--persona", default="ace")
+    p.add_argument("--team", action="store_true")
+    p.set_defaults(fn=lambda a: runner_pack(a))
+
+    a = ap.parse_args()
+    work = Path(a.work)
+    (work / "tasks").mkdir(parents=True, exist_ok=True)
+    name = "writer.md" if a.cmd == "writer" else "runner.md"
+    out = work / "tasks" / name
+    out.write_text(a.fn(a), encoding="utf-8")
+    print(json.dumps({"ok": True, "task": str(out)}, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

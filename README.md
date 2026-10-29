@@ -1,0 +1,94 @@
+# ReelForge
+
+**三端协作的短视频生产流水线。** 一个总控 agent 拆任务，一个写作模型写口播稿，一个编码 agent 把稿子做成 16:9 的视频。
+
+不是「一句话生成视频」的黑盒。它把流程拆成可验收的四道门：
+
+```
+主题 / 参考片
+   │
+   ├─ 拆解（可选，参考度默认 40%，上限 60%）
+   ├─ 口播稿  ────────────── 🛑 script_gate
+   ├─ 网页演示（wvp）  ────── 🛑 chapter_gate
+   ├─ 逐 step 配音  ──────── 🛑 audio_gate
+   └─ 录屏 + ffprobe 验收 ─── 🛑 final_gate → MP4
+```
+
+## 为什么是三个 agent
+
+| 角色 | 能力 | 默认实现 |
+|---|---|---|
+| 总控 | 读写文件、发任务、等结果、卡验收 | WorkBuddy / Claude Code / Codex |
+| 写稿 | 强写作、文件读写 | Antigravity（Gemini 4 Argon Medium） |
+| 执行 | shell、node、改代码 | DeepSeek Harness（V4.1 Flash，思考 max） |
+
+**角色和产品解耦**：换任何一个都能跑，见 [`DEPLOY.md`](DEPLOY.md)。
+没有 MCP？总控把任务包写成 markdown，人工转发；agent 改 `state.json` 即可。
+
+## 快速开始
+
+```bash
+git clone https://github.com/dichenxiang/reelforge.git
+cd reelforge
+
+bash install.sh --workbuddy --antigravity --dsh   # 按你有的 agent 选
+bash install.sh --with-wvp                        # 拉 web-video-presentation
+python skills/reelforge/scripts/probe.py          # 自检
+```
+
+然后：
+
+```bash
+python skills/reelforge/scripts/state.py init --work work/demo --title "第一条片子"
+python skills/reelforge/scripts/pack_task.py writer --work work/demo --persona ace
+# 把 work/demo/tasks/writer.md 交给写稿 agent
+```
+
+详细流程见 [`skills/reelforge/SKILL.md`](skills/reelforge/SKILL.md)。
+
+## 三个 skill
+
+| skill | 给谁 | 内容 |
+|---|---|---|
+| [`reelforge`](skills/reelforge/) | 总控 | 状态机、参考度审计、任务包、素材库、验收卡 |
+| [`reelforge-writer`](skills/reelforge-writer/) | 写稿 | 口播化规则、去 AI 味、参考预算、输出契约 |
+| [`reelforge-runner`](skills/reelforge-runner/) | 执行 | wvp 全流程、agent-teams 并行、TTS、录屏、验收 |
+
+## 素材库
+
+wvp 只管单条片子的素材清单，跨片子复用是空白。ReelForge 补了一层：
+
+```bash
+python skills/reelforge/scripts/assets.py add cover.png --tags brand --license own
+python skills/reelforge/scripts/assets.py search --tag gpu
+python skills/reelforge/scripts/assets.py materialize --work work/demo --query gpu
+```
+
+sha256 去重、授权字段、`used_in` 追踪，交付时能直接出素材授权清单。
+详见 [`skills/reelforge/references/asset-library.md`](skills/reelforge/references/asset-library.md)。
+
+## 仓库结构
+
+```
+skills/
+  reelforge/          总控 skill（scripts + references + 配置示例）
+  reelforge-writer/   写稿 skill
+  reelforge-runner/   执行 skill（含 record.mjs）
+mcp/
+  antigravity/        Antigravity 的 stdio MCP 桥接
+  deepseek-harness/   DeepSeek Harness 的 stdio MCP 桥接
+install.sh            安装 skill / 拉 wvp
+DEPLOY.md             人读的部署说明
+AGENT_DEPLOY.md       给 AI 读的自部署指令
+```
+
+## 依赖
+
+Python 3.10+ · Node 18+ · jq · ffmpeg · git
+可选：本地 IndexTTS（克隆音色）、dsh-agent-teams（章节并行）
+
+## 许可
+
+MIT。内置/依赖的上游项目：
+- [web-video-presentation](https://github.com/ConardLi/garden-skills/tree/main/skills/web-video-presentation)（MIT，不随仓库分发，安装时拉取）
+- [dsh-agent-teams](https://github.com/NanmiCoder/dsh-agent-teams)（MIT，可选插件）

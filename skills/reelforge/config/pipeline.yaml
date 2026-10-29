@@ -1,0 +1,37 @@
+# reelforge 编排配置
+# 只在总控侧读；写稿/执行 skill 各自有自己的默认值。
+
+roles:
+  orchestrator:
+    agent: workbuddy           # 任意能开会话、能读写文件的 agent
+    skill: reelforge
+  writer:
+    agent: antigravity         # 只负责写稿 + 出图
+    skill: reelforge-writer
+    model: gemini-4-argon-medium
+    reasoning: low
+  runner:
+    agent: deepseek-harness    # 只负责 wvp 工程与音频
+    skill: reelforge-runner
+    model: deepseek-v4.1-flash
+    reasoning: max
+    team: true                 # 第 2..N 章用 /agent-teams 并行
+
+gates:
+  - script_gate                # 口播稿确认（必须先过这一关）
+  - chapter_gate               # 第 1 章验收
+  - audio_gate                 # 音频确认
+  - final_gate                 # 成片验收
+
+reference:
+  target: 40                   # 默认参考度
+  max: 60                      # 硬上限，超了必须重写
+
+video:
+  aspect: "16:9"               # wvp 固定 1920×1080
+  fps: 30
+  max_duration_sec: 1200
+
+paths:
+  wvp: vendor/web-video-presentation
+  library: "~/.reelforge/library"   # 素材库，REELFORGE_LIBRARY 可覆盖
