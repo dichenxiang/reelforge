@@ -27,6 +27,17 @@ description: 写口播稿的专用 skill。输入主题或参考片证据 + 账�
 `references/writing-rules.md` 只是我们额外加的 4 条约束，
 **不要用它替代 SCRIPT-STYLE，也不要自己另立一套写法**。
 
+还有一份**本号真实套路**（从本号三条真实视频的口播转写逆向出来的）：
+
+| 人设 | 文件 |
+|---|---|
+| 引流号（把关学长） | `references/patterns-gatekeeper.md` |
+| 长期号（阿测） | `references/patterns-ace.md` |
+
+它比 SCRIPT-STYLE 更贴近本号：开场公式、句长与数字密度、档位/步骤写法、
+导流写法、收尾模板、以及**我们上一版写坏的对照表**。
+写本号的稿子时，SCRIPT-STYLE 管「像不像口播」，patterns 管「像不像本号」。
+
 ## 硬约束
 
 1. **画幅 16:9**（wvp 固定 1920×1080），不要写竖屏文案。

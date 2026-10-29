@@ -25,6 +25,12 @@ def common(work: Path) -> str:
 """
 
 
+def pattern_file(persona: str) -> Path:
+    """按人设选「本号文案套路」文件（从真实视频逆向出来的）。"""
+    name = "patterns-ace.md" if persona == "ace" else "patterns-gatekeeper.md"
+    return SKILLS_ROOT / "reelforge-writer" / "references" / name
+
+
 def persona_block(persona: str) -> str:
     """把账号人设段落直接嵌进任务包——写稿 agent 不用自己找。"""
     script = SKILL / "scripts" / "personas.py"
@@ -63,11 +69,12 @@ def writer_pack(a) -> str:
    ← **口播怎么写，唯一权威。全文读，别复述、别改写、别另立规则**
 2. **{SKILL / 'vendor' / 'web-video-presentation' / 'references' / 'OUTLINE-FORMAT.md'}**
    ← outline.md 的格式规范
-3. {SKILLS_ROOT / 'reelforge-writer' / 'SKILL.md'}
-4. {SKILLS_ROOT / 'reelforge-writer' / 'references' / 'writing-rules.md'}（本项目额外 4 条约束）
-5. 如存在：{SKILLS_ROOT / 'reelforge-writer' / 'references' / 'humanizer-zh.md'}
-6. 参考证据（有参考时）：{ref if ref.exists() else '（无）'}
-7. 拆解报告：{work / 'evidence.md'}（有就读）
+3. **{pattern_file(a.persona)}** ← **本号真实文案套路（从真实视频逆向），照这个写**
+4. {SKILLS_ROOT / 'reelforge-writer' / 'SKILL.md'}
+5. {SKILLS_ROOT / 'reelforge-writer' / 'references' / 'writing-rules.md'}（本项目额外 4 条约束）
+6. 如存在：{SKILLS_ROOT / 'reelforge-writer' / 'references' / 'humanizer-zh.md'}
+7. 参考证据（有参考时）：{ref if ref.exists() else '（无）'}
+8. 拆解报告：{work / 'evidence.md'}（有就读）
 
 ## 账号人设（照这个写，禁词不许出现）
 
@@ -81,6 +88,12 @@ def writer_pack(a) -> str:
 2. 把事实、来源、原文片段写进 `source_digest.md`（每个结论标出处）
 3. 抓不到或互相矛盾的，写「未证实 / 有冲突」，**不许编**
 4. 检索完再进入写稿；不要一边搜一边编稿
+
+## 长度与体量
+
+- **短片**（≤60 秒）：1 章，4–8 拍，直接一个骨架打完
+- **长片**（1–20 分钟）：按套路文件里的分章骨架写，`outline.md` 里出章节表
+  （各章时长、全片起点、衔接方式），wvp 会逐章构建
 
 ## 风格听谁的（重要）
 

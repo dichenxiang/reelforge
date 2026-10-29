@@ -83,6 +83,11 @@ def merge_split_tracks(out_dir: Path) -> Path | None:
     return out if out.exists() else None
 
 
+def eprint(*a, **k):
+    """进度输出走 stderr（stdout 留给结果）。"""
+    print(*a, file=sys.stderr, **k)
+
+
 def download(url: str, out_dir: Path, max_height: int, cookies: str | None, force: bool) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     meta_path = out_dir / "meta.json"
