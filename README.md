@@ -20,7 +20,7 @@
 |---|---|---|
 | 总控 | 读写文件、发任务、等结果、卡验收 | WorkBuddy / Claude Code / Codex |
 | 写稿 | 强写作、文件读写 | Antigravity（Gemini 4 Argon Medium） |
-| 执行 | shell、node、改代码 | DeepSeek Harness（V4.1 Flash，思考 max） |
+| 执行 | shell、node、改代码 | DeepSeek Harness（官方来源，`deepseek-flash`＝V4.1 Flash，思考 max） |
 
 **角色和产品解耦**：换任何一个都能跑，见 [`DEPLOY.md`](DEPLOY.md)。
 没有 MCP？总控把任务包写成 markdown，人工转发；agent 改 `state.json` 即可。

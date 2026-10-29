@@ -36,8 +36,24 @@ CLI_REL = (
     / "@deepseek-ai" / "dsh-desktop-host" / "lib" / "cli.js"
 )
 
-MODELS = ["deepseek-v4.1-flash", "deepseek-flash", "deepseek-v4-pro"]
-DEFAULT_MODEL = "deepseek-v4.1-flash"
+PROVIDERS = {
+    # 官方账号（默认）
+    "deepseek-account": ["deepseek-flash", "deepseek-v4-pro"],
+    # WorkBuddy 国内版（需 headless profile 装 dsh-connect-workbuddy）
+    "workbuddy": [
+        "deepseek-v4.1-flash", "deepseek-v4-pro",
+        "glm-5.3", "glm-5.3-flash", "kimi-k3.1-pro", "minimax-m3",
+        "hy3", "hy4-preview", "step-5-preview", "mimo-v2.6-pro",
+    ],
+    # WorkBuddy 国际版
+    "workbuddy-global": [
+        "fast-model", "balanced-model", "primary-model",
+        "hy4-preview", "hy3", "deepseek-v4.1-flash",
+    ],
+}
+PROVIDER = "deepseek-account"
+MODELS = sorted({m for ms in PROVIDERS.values() for m in ms})
+DEFAULT_MODEL = "deepseek-flash"
 DEFAULT_EFFORT = "max"
 
 # ---------------------------------------------------------------- logging
@@ -157,32 +173,59 @@ def discover(force: bool = False) -> tuple[Path, Path]:
 _yaml_bad = re.compile(r"[^A-Za-z0-9._-]")
 
 
-def patch_for(model: str, effort: str) -> Path:
-    """生成/复用 profile 补丁：开账号登录、指定模型档位。"""
+def provider_available(provider: str) -> bool:
+    if provider == "deepseek-account":
+        return True
+    plug = DSH_HOME / "profiles" / "headless" / "node_modules" / "dsh-connect-workbuddy"
+    return plug.exists()
+
+
+def patch_for(provider: str, model: str, effort: str) -> Path:
+    """生成/复用 profile 补丁：指定 provider + 模型档位 + 思考强度。"""
+    provider = (provider or PROVIDER).strip()
     model = (model or DEFAULT_MODEL).strip()
     effort = (effort or DEFAULT_EFFORT).strip()
-    if _yaml_bad.search(model) or _yaml_bad.search(effort):
-        raise ValueError(f"model / reasoning_effort 含非法字符: {model!r} {effort!r}")
+    if provider not in PROVIDERS:
+        raise ValueError(f"未知 provider: {provider}，可选 {list(PROVIDERS)}")
+    if model not in PROVIDERS[provider]:
+        raise ValueError(f"{provider} 不支持模型 {model}，可选 {PROVIDERS[provider]}")
+    if _yaml_bad.search(model) or _yaml_bad.search(effort) or _yaml_bad.search(provider):
+        raise ValueError(f"参数含非法字符: {provider!r} {model!r} {effort!r}")
+    if not provider_available(provider):
+        raise ValueError(
+            f"provider {provider} 在 headless profile 里不可用；"
+            "先给 headless 安装 dsh-connect-workbuddy（见 mcp/deepseek-harness/README.md）"
+        )
     PATCH_DIR.mkdir(parents=True, exist_ok=True)
-    p = PATCH_DIR / f"account_{model}_{effort}.yml"
-    body = (
+    p = PATCH_DIR / f"account_{provider}_{model}_{effort}.yml"
+    head = (
         "# 由 WorkBuddy deepseek-harness MCP 自动生成：\n"
         "# headless profile 默认要求 DEEPSEEK_API_KEY，这里改成复用桌面端账号登录。\n"
-        "- id: deepseek-account\n"
-        "  disabled: false\n"
-        "- id: credentials\n"
-        "  disabled: false\n"
-        "- id: authorization\n"
-        "  disabled: false\n"
+    )
+    if provider == "deepseek-account":
+        body = (
+            "- id: deepseek-account\n"
+            "  disabled: false\n"
+            "- id: credentials\n"
+            "  disabled: false\n"
+            "- id: authorization\n"
+            "  disabled: false\n"
+        )
+    else:
+        body = (
+            "- id: dsh-connect-workbuddy\n"
+            "  disabled: false\n"
+        )
+    body += (
         "- id: agent-default-model\n"
         '  name: "@deepseek-ai/dsh-agent-default-model"\n'
         "  config:\n"
-        "    provider: deepseek-account\n"
+        f"    provider: {provider}\n"
         f"    model: {model}\n"
         f"    reasoningEffort: {effort}\n"
     )
-    if not p.exists() or p.read_text(encoding="utf-8") != body:
-        p.write_text(body, encoding="utf-8")
+    if not p.exists() or p.read_text(encoding="utf-8") != head + body:
+        p.write_text(head + body, encoding="utf-8")
     return p
 
 
@@ -319,9 +362,10 @@ def run_task(
     effort: str,
     timeout: float,
     session_id: str | None = None,
+    provider: str = PROVIDER,
 ) -> dict:
     exe, cli = discover()
-    patch = patch_for(model, effort)
+    patch = patch_for(provider, model, effort)
     argv = [str(exe), "--expose-internals", str(cli), "headless", "--patch", str(patch), "--json"]
     if session_id:
         argv += ["--session-id", session_id]
@@ -333,7 +377,7 @@ def run_task(
     env.setdefault("PYTHONIOENCODING", "utf-8")
 
     t0 = time.time()
-    log(f"run model={model} effort={effort} cwd={cwd} sid={session_id} len={len(task)}")
+    log(f"run provider={provider} model={model} effort={effort} cwd={cwd} sid={session_id} len={len(task)}")
     try:
         proc = subprocess.Popen(
             argv,
@@ -428,6 +472,7 @@ def run_task(
         res["ok"] = False
         res["error"] = res.get("error") or f"超时（{timeout:.0f}s），已终止进程；任务可能在 Harness 侧未完成"
     res["model"] = model
+    res["provider"] = provider
     res["reasoning_effort"] = effort
     res["cwd"] = str(cwd)
     log(f"done ok={res['ok']} sid={res['session_id']} elapsed={res['elapsed_sec']}")
@@ -510,7 +555,8 @@ JOBS: dict[str, dict] = {}
 JOBS_LOCK = threading.Lock()
 
 
-def job_start(task: str, cwd: Path, model: str, effort: str, timeout: float) -> str:
+def job_start(task: str, cwd: Path, model: str, effort: str, timeout: float,
+              provider: str = PROVIDER) -> str:
     jid = "job-" + uuid.uuid4().hex[:12]
     slot = {
         "job_id": jid,
@@ -518,6 +564,7 @@ def job_start(task: str, cwd: Path, model: str, effort: str, timeout: float) -> 
         "task": task[:160],
         "cwd": str(cwd),
         "model": model,
+        "provider": provider,
         "started_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "result": None,
         "error": None,
@@ -528,7 +575,7 @@ def job_start(task: str, cwd: Path, model: str, effort: str, timeout: float) -> 
 
     def worker() -> None:
         try:
-            res = run_task(task, cwd, model, effort, timeout)
+            res = run_task(task, cwd, model, effort, timeout, provider=provider)
             slot["result"] = res
             slot["status"] = "done" if res.get("ok") else "failed"
             index_append(res, task)
@@ -561,7 +608,11 @@ TOOLS = [
                     "type": "string",
                     "enum": MODELS,
                     "default": DEFAULT_MODEL,
-                    "description": "deepseek-flash 快；deepseek-v4-pro 更强",
+                    "description": "deepseek-v4.1-flash 默认；v4-pro 更强；WorkBuddy 来源另有 glm/kimi 等",
+                },
+                "provider": {
+                    "type": "string", "enum": list(PROVIDERS), "default": PROVIDER,
+                    "description": "模型来源：deepseek-account 官方（默认）；workbuddy / workbuddy-global 走 WorkBuddy 额度",
                 },
                 "reasoning_effort": {
                     "type": "string",
@@ -584,6 +635,10 @@ TOOLS = [
                 "task": {"type": "string"},
                 "cwd": {"type": "string"},
                 "model": {"type": "string", "enum": MODELS, "default": DEFAULT_MODEL},
+                "provider": {
+                    "type": "string", "enum": list(PROVIDERS), "default": PROVIDER,
+                    "description": "模型来源：deepseek-account 官方（默认）；workbuddy / workbuddy-global 走 WorkBuddy 额度",
+                },
                 "reasoning_effort": {
                     "type": "string", "enum": ["low", "medium", "high", "max"], "default": DEFAULT_EFFORT,
                 },
@@ -613,6 +668,10 @@ TOOLS = [
                 "task": {"type": "string", "description": "这一轮要说什么/做什么"},
                 "cwd": {"type": "string", "description": "该会话原本的工作目录（不填则自动从索引推断）"},
                 "model": {"type": "string", "enum": MODELS, "default": DEFAULT_MODEL},
+                "provider": {
+                    "type": "string", "enum": list(PROVIDERS), "default": PROVIDER,
+                    "description": "模型来源：deepseek-account 官方（默认）；workbuddy / workbuddy-global 走 WorkBuddy 额度",
+                },
                 "reasoning_effort": {
                     "type": "string", "enum": ["low", "medium", "high", "max"], "default": DEFAULT_EFFORT,
                 },
@@ -658,6 +717,7 @@ def tool_run(a: dict) -> str:
         a.get("reasoning_effort") or DEFAULT_EFFORT,
         float(a.get("timeout") or 900),
         a.get("session_id") or None,
+        a.get("provider") or PROVIDER,
     )
     index_append(res, task)
     return _fmt(res)
@@ -673,6 +733,7 @@ def tool_start(a: dict) -> str:
         a.get("model") or DEFAULT_MODEL,
         a.get("reasoning_effort") or DEFAULT_EFFORT,
         float(a.get("timeout") or 1800),
+        a.get("provider") or PROVIDER,
     )
     return json.dumps({"ok": True, "job_id": jid}, ensure_ascii=False)
 
@@ -686,6 +747,7 @@ def tool_result(a: dict) -> str:
                     "job_id": j["job_id"],
                     "status": j["status"],
                     "model": j["model"],
+                    "provider": j.get("provider"),
                     "started_at": j["started_at"],
                     "task": j["task"],
                 }
@@ -731,6 +793,7 @@ def tool_continue(a: dict) -> str:
         a.get("reasoning_effort") or DEFAULT_EFFORT,
         float(a.get("timeout") or 900),
         session_id=sid,
+        provider=a.get("provider") or PROVIDER,
     )
     index_append(res, task)
     return _fmt(res)
@@ -776,7 +839,8 @@ def tool_sessions(a: dict) -> str:
 
 
 def tool_health(a: dict) -> str:
-    info: dict = {"ok": False, "models": MODELS, "dsh_home": str(DSH_HOME)}
+    info: dict = {"ok": False, "models": MODELS, "providers": list(PROVIDERS),
+                  "default_provider": PROVIDER, "dsh_home": str(DSH_HOME)}
     try:
         exe, cli = discover(force=True)
         asar = exe.parent / "resources" / "app.asar"

@@ -33,13 +33,29 @@
 }
 ```
 
-## 模型
+## 模型来源（provider）
 
-- `deepseek-v4.1-flash`（默认，1M 上下文，支持 `low|high|max` 思考强度）
-- `deepseek-flash`
-- `deepseek-v4-pro`
+| provider | 来源 | 模型 id（部分） |
+|---|---|---|
+| `deepseek-account` | 官方账号（默认） | `deepseek-flash`（即 V4.1 Flash）、`deepseek-v4-pro` |
+| `workbuddy` | WorkBuddy 国内版 | `deepseek-v4.1-flash`、`deepseek-v4-pro`、`glm-5.3`、`kimi-k3.1-pro`、`hy3`… |
+| `workbuddy-global` | WorkBuddy 国际版 | `fast-model`、`balanced-model`、`primary-model`、`hy4-preview`… |
 
-ReelForge 默认用 `deepseek-v4.1-flash` + `reasoning_effort=max`。
+调用时传 `provider`；不传就是官方。工具 schema 里的 `model` 是三家并集，
+传错来源会明确报错（不会静默降级）。
+
+官方 API 只认 `deepseek-flash` / `deepseek-v4-pro`；`deepseek-v4.1-flash`
+是 WorkBuddy 来源的 id，别混用。
+
+思考强度：`low | medium | high | max`，V4.1 系列支持 `max`。
+
+ReelForge 默认：`provider=deepseek-account` + `model=deepseek-flash` + `reasoning_effort=max`。
+
+WorkBuddy 来源要求 headless profile 也装了插件：
+
+```bash
+dsh plugin --profile headless add dsh-connect-workbuddy
+```
 
 ## 注意
 

@@ -80,7 +80,9 @@ get_result(conversation_id, timeout=900)
 **DeepSeek Harness（执行）**
 
 ```
-start(task=<tasks/runner.md 内容>, cwd=<work 绝对路径>, model="deepseek-v4.1-flash",
+start(task=<tasks/runner.md 内容>, cwd=<work 绝对路径>,
+      provider="deepseek-account",        # 官方；可切 workbuddy / workbuddy-global
+      model="deepseek-flash",             # 官方里 V4.1 Flash 的 id
       reasoning_effort="max", timeout=1800)
 result(job_id, timeout=900)
 continue_session(session_id, task="用户确认第 1 章，继续第 2..N 章")

@@ -14,7 +14,7 @@ description: 三端编排的短视频生产流水线。总控（本 skill）负�
 |---|---|---|---|
 | 总控 | WorkBuddy / 任意编排 agent | `reelforge` | 拆解、组任务包、审计、验收、汇总 |
 | 写稿 | 强写作模型（默认 Antigravity `gemini-4-argon-medium`，低思考） | `reelforge-writer` | `script.md` / `script.json` |
-| 执行 | 编码 agent（默认 DeepSeek Harness `deepseek-v4.1-flash`，思考 max） | `reelforge-runner` | wvp 工程、章节、音频、录屏 |
+| 执行 | 编码 agent（默认 DeepSeek Harness，**官方来源** `deepseek-flash`＝V4.1 Flash，思考 max；可切 WorkBuddy 来源） | `reelforge-runner` | wvp 工程、章节、音频、录屏 |
 | 出图 | 任意图像能力 | — | 封面、图表、插图 |
 
 三端通过**文件 + `state.json`** 协作，谁都能换，只要读写同一份工作目录。

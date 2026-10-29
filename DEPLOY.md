@@ -10,7 +10,7 @@ ReelForge 把短视频生产拆成三个角色。**角色和具体产品解耦**
 |---|---|---|---|
 | 总控 | 能读写文件、能发消息给另外两个、能等结果 | WorkBuddy | `reelforge` |
 | 写稿 | 强写作、能读文件、能写文件 | Antigravity（Gemini 4 Argon Medium，低思考） | `reelforge-writer` |
-| 执行 | 能执行 shell、改代码、跑 node/python | DeepSeek Harness（`deepseek-v4.1-flash`，max 思考） | `reelforge-runner` |
+| 执行 | 能执行 shell、改代码、跑 node/python | DeepSeek Harness（官方来源，`deepseek-flash`＝V4.1 Flash，max 思考） | `reelforge-runner` |
 
 出图是可选能力，谁有谁做（Antigravity / ImageGen / 人工）。
 
@@ -104,7 +104,30 @@ python skills/reelforge/scripts/probe.py
 在 Antigravity 桌面里手动把默认模型切到 Argon Medium，桥接传 `pro` 时按
 应用当前选择执行（不同版本行为可能不同，以实测为准）。
 
-### 4.4 DeepSeek Harness 开团队
+### 4.4 模型来源（provider）
+
+Harness 里有多套来源，MCP 用 `provider` 参数选，**默认官方**：
+
+| provider | 来源 | 模型 id（部分） | 计费 |
+|---|---|---|---|
+| `deepseek-account` | DeepSeek 官方账号 | `deepseek-flash`（V4.1 Flash）、`deepseek-v4-pro` | 官方额度 |
+| `workbuddy` | WorkBuddy 国内版 | `deepseek-v4.1-flash`、`glm-5.3`、`kimi-k3.1-pro`、`hy3`… | 积分倍率 |
+| `workbuddy-global` | WorkBuddy 国际版 | `fast-model`、`balanced-model`、`primary-model`、`hy4-preview`… | 积分倍率 |
+
+注意：**官方 API 里 V4.1 Flash 的 id 是 `deepseek-flash`**，`deepseek-v4.1-flash`
+只在 WorkBuddy 来源可用——写错会被官方拒绝。
+
+默认配置：`provider=deepseek-account`、`model=deepseek-flash`、`reasoning_effort=max`。
+
+想切 WorkBuddy 来源：headless profile 也要装插件（桌面端装了不代表 headless 有）：
+
+```bash
+dsh plugin --profile headless add dsh-connect-workbuddy
+```
+
+然后调用时传 `provider="workbuddy"` / `"workbuddy-global"`。
+
+### 4.5 DeepSeek Harness 开团队
 
 ```bash
 # 桌面端：Plugins → Add plugin → github:NanmiCoder/dsh-agent-teams
@@ -115,7 +138,7 @@ dsh plugin --profile web add --save-exact @nanmicoder/dsh-agent-teams@0.1.27
 装完重启 Harness。执行 skill 的任务包会以 `/agent-teams ` 开头，
 第 2..N 章并行；没装就退化为顺序，不影响出片。
 
-### 4.5 配置
+### 4.6 配置
 
 | 文件 | 改什么 |
 |---|---|

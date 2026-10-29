@@ -13,7 +13,10 @@ roles:
   runner:
     agent: deepseek-harness    # 只负责 wvp 工程与音频
     skill: reelforge-runner
-    model: deepseek-v4.1-flash
+    # 模型来源：deepseek-account 官方（默认）；可切 workbuddy / workbuddy-global
+    provider: deepseek-account
+    # 官方 API 里 V4.1 Flash 的 id 是 deepseek-flash（不是 deepseek-v4.1-flash）
+    model: deepseek-flash
     reasoning: max
     team: true                 # 第 2..N 章用 /agent-teams 并行
 

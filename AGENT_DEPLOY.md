@@ -105,6 +105,18 @@ cd "$REPO/skills/reelforge/config"
 
 不提供就保持 example 默认值，并在报告里标「未配置，使用回退方案」。
 
+## 5.1 模型来源（可选）
+
+MCP 默认 `provider=deepseek-account`（官方）、`model=deepseek-flash`（即 V4.1 Flash）、
+`reasoning_effort=max`。用户要用 WorkBuddy 额度时：
+
+```bash
+dsh plugin --profile headless add dsh-connect-workbuddy
+# 调用时传 provider="workbuddy" 或 "workbuddy-global"
+```
+
+不要默认切到 WorkBuddy 来源——用户没明确说就用官方。
+
 ## 6. 校验（全部要过）
 
 ```bash
