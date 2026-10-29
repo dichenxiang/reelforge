@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 SKILL = Path(__file__).resolve().parent.parent
@@ -23,19 +25,36 @@ def common(work: Path) -> str:
 """
 
 
+def persona_block(persona: str) -> str:
+    """把账号人设段落直接嵌进任务包——写稿 agent 不用自己找。"""
+    script = SKILL / "scripts" / "personas.py"
+    try:
+        out = subprocess.run(
+            [sys.executable, str(script), "--prompt", persona],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
+        ).stdout.strip()
+    except Exception as e:  # pragma: no cover
+        out = ""
+    if not out:
+        out = f"（读不到人设，请自己执行：python {script} --prompt {persona}）"
+    return out
+
+
 def writer_pack(a) -> str:
     work = Path(a.work).resolve()
     ref = (work / "reference.json")
     budget = f"""- 参考度目标 {a.budget} 分，硬上限 60 分（`similarity.py` 会验）
 - 有参考时：结构可借、手法 ≤2 个，**文案必须原创**
 """ if ref.exists() or a.reference else "- 本次没有参考片，全原创\n"
+    persona = persona_block(a.persona)
+
     return f"""# 任务：写口播稿（reelforge-writer）
 
 你是写稿 agent。**只写稿，不写代码、不搭工程。**
 
 ## 环境
 {common(work)}- 你的 skill：{SKILLS_ROOT / 'reelforge-writer'}
-- 人设：{a.persona}
+- 人设：{a.persona}（人设段落已经贴在下面，**照这个口吻写**）
 - 素材库清单：{work / 'assets.json'}（有就参考已有素材，不要重复找图）
 
 ## 必读（按顺序）
@@ -44,6 +63,10 @@ def writer_pack(a) -> str:
 3. 如存在：{SKILLS_ROOT / 'reelforge-writer' / 'references' / 'humanizer-zh.md'}
 4. 参考证据（有参考时）：{ref if ref.exists() else '（无）'}
 5. 拆解报告：{work / 'evidence.md'}（有就读）
+
+## 账号人设（照这个写，禁词不许出现）
+
+{persona}
 
 ## 先检索，再写稿（硬性顺序）
 

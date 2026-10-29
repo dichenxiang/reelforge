@@ -13,7 +13,7 @@ description: 写口播稿的专用 skill。输入主题或参考片证据 + 账�
 |---|---|---|
 | 主题 / 资料 | 是 | 用户给的一句话，或 `article.md` / `evidence.md` |
 | 参考片（可选） | 否 | `reference.json`（镜头时长 + 转写文本）或 `evidence.md` |
-| 人设 | 是 | `ace`（阿测）或 `gatekeeper`（把关学长），由总控指定 |
+| 人设 | 是 | `ace`（阿测）或 `gatekeeper`（把关学长）；**任务包里已贴好人设段落，照那个口吻写** |
 | 参考度预算 | 否 | 默认 40，上限 60 |
 
 ## 硬约束
@@ -35,6 +35,8 @@ description: 写口播稿的专用 skill。输入主题或参考片证据 + 账�
 
 ## 流程
 
+0. **读人设**：任务包里的「账号人设」段落（口吻、价值观、态度锚点句、禁词表）；
+   没贴就自己跑 `python <reelforge>/scripts/personas.py --prompt <id>`
 1. 读 `references/writing-rules.md`（口播化 + 去 AI 味）
 2. 如果装了 humanizer-zh：读它的 `SKILL.md`，把规则叠加进来
 3. 有参考片：先写「借鉴清单」——借哪 2–3 个结构动作，明确不借什么
@@ -73,6 +75,7 @@ python <reelforge>/scripts/state.py set --work <work> \
 
 ## 不该做的事
 
+- 不填视觉字段：`style` / `palette` / `motion` / `camera` / `bgm` / `sfx` 这些是出片阶段的事
 - 不写 HTML / CSS / JS
 - 不跑 scaffold、不装依赖
 - 不生成图片（需要图时只写「图需求清单」，交给总控或出图 agent）

@@ -1,78 +1,89 @@
-# script.json 契约
+# script.json 契约（写稿阶段专用，瘦身版）
 
-反重力的输出不直接进渲染，先收敛成这个结构，人工确认后才用。
+写稿 agent 只交**写稿需要的东西**。视觉风格、配色、动效、镜头、BGM 这些
+是**出片阶段**由 wvp 的 direction 决定的，不在这里，别为了填字段而写稿。
+
+> 人设不在这个文件里，在 `config/personas.yaml`。写稿前必须先读人设（见下）。
+
+## 先读人设（必做）
+
+```bash
+python <reelforge>/scripts/personas.py --prompt ace     # 或 gatekeeper
+```
+
+打印出来的是这个账号的说话方式、价值观、态度锚点句和**禁词表**。
+稿子必须像这个号说的话，且不得出现禁词。写完自己再扫一遍禁词。
 
 ## 结构
 
 ```json
 {
-  "title": "GPT-6.1 Terra 为什么只卖一半价",
-  "duration_sec": 18,
+  "title": "Muse 会替你操作浏览器，但也会被风控盯上",
+  "duration_sec": 40,
   "aspect": "16:9",
   "platform": "抖音 / 视频号",
-  "format": "product-explainer",
-  "takeaway": "中端价格，旗舰一半的跑分",
-  "hook": "第一句就把价格差拍出来",
-  "signature": "第 9 秒：跑分条从旧值滚到新值，落定同时出'翻倍'",
-  "structure": {
-    "chosen": "价格差 → 跑分对比 → 短板 → 一句话结论",
-    "candidates": ["价格差先行", "跑分先行", "短板先行"]
-  },
-  "style": {
-    "name": "swiss-editorial",
-    "signals": ["大字号左对齐标题", "细网格线", "单一强调色"],
-    "avoid": ["深色背景", "紫蓝渐变", "居中大字"]
-  },
-  "benchmark": {"name": "参考片", "learn": "切点密度与信息节奏", "avoid": "文案与镜头"},
-  "brand": "主色 #E4572E，字体思源黑体",
-  "palette": "背景 #F5F1E8 / 主色 #111 / 强调 #E4572E",
-  "type": "展示 思源黑体 Heavy / 辅助 Regular",
-  "motion": "snap 入场，无弹簧",
-  "camera": "固定机位 + 元素位移",
-  "texture": "纸纹 5%",
-  "sound": "轻电子，80 BPM，无鼓点冲击",
-  "bgm": "AI 合成",
-  "sfx": "AI 合成，只在数字落定处",
-  "tts": "本地 IndexTTS 2.0 / 人设 ace / 参考音频 D:/indexTTS/voices/ace_ref.wav",
-  "forbidden": ["跑马灯", "每拍都放大", "念字幕"],
+  "takeaway": "它很强，但封号是真实成本",
+  "hook": "第一句就把封号这件事砸出来",
+  "ending": "落版：先小号试，别拿主号赌",
+  "source_basis": "2 条 x.com 帖 + 官方说明；哪些结论是推断已标注",
   "beats": [
     {
       "id": "s1",
-      "text": "同一档跑分，价格只要一半。",
-      "visual": "旧价与新价两个数字同屏，新价压住旧价",
-      "duration_sec": 3.2,
-      "state": "两个价格从并排到新价放大",
-      "carry": "价格卡延续到下一拍",
-      "event": "0.6s 新价落定",
-      "audio": "合成器单音，落定处一个 click",
-      "transition": "价格卡右移出画"
+      "text": "第一拍念出来的话",
+      "visual": "这一拍观众看懂什么变化（写变化，不写元素）",
+      "duration_sec": 4.0
     }
-  ],
-  "ending": "落版定格：一句话结论 + 账号名",
-  "duration_note": "无",
-  "source_basis": "参考片拆解 + 厂商公布参数"
+  ]
 }
 ```
 
-## 必填
+## 字段
 
-`title` `duration_sec` `aspect`（**固定 `16:9`**，wvp 只做 1920×1080）
-`beats[]`（每拍 `text` + `visual` + `duration_sec`，一拍 = wvp 一个 step）
-`style.name` `takeaway` `hook`
-`bgm` `sfx`（来源必须是用户确认过的：`AI 合成` / `用户提供：<路径>` / `关闭`）
+| 字段 | 必填 | 说明 |
+|---|---|---|
+| `title` | ✅ | 片子标题 |
+| `duration_sec` | ✅ | 目标时长（≤1200） |
+| `aspect` | ✅ | 固定 `16:9`（wvp 硬约束） |
+| `beats[].id` | ✅ | `s1`、`s2`… 顺序编号 |
+| `beats[].text` | ✅ | 口播原文；一屏 ≤14 个汉字 |
+| `beats[].visual` | ✅ | 观众看懂什么变化 |
+| `beats[].duration_sec` | ✅ | 这拍多长；Σ 与 `duration_sec` 偏差 ≤15% |
+| `takeaway` | ✅ | 一句话结论 |
+| `platform` | | 投放平台 |
+| `hook` | | 第一句的冲突点 |
+| `ending` | | 落版那句话 |
+| `source_basis` | | 资料来源；推断要标出来 |
+| `notes` | | 写给执行者的提醒 |
 
-`progress_preview`：`启用` / `未提出`（用户要不要看制作过程，对应上游进度页）。
+## 不在写稿阶段的东西
 
-## 校验规则（写稿时自检；make_wvp_inputs.py 只做格式转换）
+`style` / `palette` / `type` / `motion` / `camera` / `texture` / `brand` /
+`benchmark` / `bgm` / `sfx` / `tts` / `forbidden` / `structure` —— 这些由
+**出片阶段**决定（wvp 选主题 + direction + 章节 craft），写在稿子里只会
+让写稿 agent 瞎填。
+
+需要控制的地方写 `notes` 里，例如「这句别上屏」「这里要留一个数据对比」。
+
+## 配套文件
+
+| 文件 | 谁写 | 内容 |
+|---|---|---|
+| `source_digest.md` | 写稿 agent | 检索结果与出处 |
+| `script.md` | 写稿 agent | 口播稿，`---` 切节拍，节拍数 = beats 数 |
+| `script.json` | 写稿 agent | 本文件 |
+| `writer-notes.md` | 写稿 agent | 借鉴清单、自评参考度、首行 `writer-agent: <名字>` |
+
+## 校验规则（人工/脚本自检）
 
 | 项 | 规则 | 不满足 |
 |---|---|---|
-| 总时长 | Σ`beats[].duration_sec` 与 `duration_sec` 偏差 ≤15% | 报 warning，退出码 2 |
-| 拍数 | 8–20 秒片子 4–8 拍；>20 秒按 3–4 秒/拍 | 人工判断 |
-| 口播字数 | 中文按 **5 字/秒** 估算；`duration_sec × 5 × 1.1` 为上限 | 超了会爆时长 |
+| 总时长 | Σ`beats[].duration_sec` 与 `duration_sec` 偏差 ≤15% | 报 warning |
+| 拍数 | 8–20 秒 4–8 拍；>20 秒按 3–4 秒/拍 | 人工判断 |
+| 口播字数 | 中文 5 字/秒；`duration_sec × 5 × 1.1` 为上限 | 超了会爆时长 |
 | 单拍 text | 每段 ≤14 个汉字（16:9 一屏一行能读完） | 屏幕上读不完 |
-| aspect | **只接受 `16:9`**（wvp 固定 1920×1080） | 报错，改稿或换工具 |
-| 数字 | 只能来自用户或可查来源 | 事实错误 |
+| aspect | 只接受 `16:9` | 报错，改稿或换工具 |
+| 禁词 | 人设的 `banned` 一个都不能出现 | 平台限流风险 |
+| 数字 | 只能来自用户、检索结果或可查来源 | 事实错误 |
 | 用词 | 无「最/第一/必买/全网」 | 平台限流风险 |
 
 ## 屏幕文字量怎么控制
@@ -81,11 +92,3 @@ wvp 是 1920×1080、每步独占整屏。一屏一行大字 + 一行辅助说�
 主标题 ≤14 个汉字，副标 ≤20 个，超过就拆成两个 step。
 英文/数字按半宽折算：`GPT-6.1` 算 7 个宽度单位。
 拆点优先落在标点，其次在「的/了/在」前后，不要拆开数字和英文单词。
-
-## 修稿顺序
-
-1. 先砍字数（删形容词、删重复结论），不动信息点
-2. 再调拍长（把长拍拆成两拍，或合并碎拍）
-3. 最后才改结构
-
-改完必须让用户确认新版本；`narration.txt` 一旦生成就只读，TTS 只能读它。
