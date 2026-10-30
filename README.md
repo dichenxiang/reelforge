@@ -1,6 +1,6 @@
 # ReelForge
 
-**三端协作的短视频生产流水线。** 一个总控 agent 拆任务，一个写作模型写口播稿，一个编码 agent 把稿子做成 16:9 的视频。
+**模块化的短视频生产流水线。** 流程拆成三部分——总控 / 写稿 / 执行——可以三个 agent 分工，也可以**一个 agent 全包**；交付物都是 16:9 的成片。
 出片有两条路线：**A** 网页章节 + 录屏（默认），**B** 确定性 HTML + EAC `__seek(t)` 逐帧渲染（可选）。
 
 不是「一句话生成视频」的黑盒。它把流程拆成可验收的四道门：
@@ -16,13 +16,15 @@
    └─ 录屏 + 混音 + 字幕 ───── 🛑 final_gate → MP4 + SRT
 ```
 
-## 为什么是三个 agent
+## 为什么拆成三部分
 
 | 角色 | 能力 | 默认实现 |
 |---|---|---|
 | 总控 | 读写文件、发任务、等结果、卡验收 | WorkBuddy / Claude Code / Codex |
 | 写稿 | 强写作、文件读写 | Antigravity（Gemini 4 Argon Medium） |
 | 执行 | shell、node、改代码 | DeepSeek Harness（官方来源，`deepseek-flash`＝V4.1 Flash，思考 max） |
+
+三部分只是**职责边界**，不是必须三个 agent：单 agent 按「总控 → 写稿 → 执行」顺序做三步即可。
 
 **角色和产品解耦**：换任何一个都能跑，见 [`DEPLOY.md`](DEPLOY.md)。
 没有 MCP？总控把任务包写成 markdown，人工转发；agent 改 `state.json` 即可。
@@ -69,7 +71,7 @@ python skills/reelforge/scripts/pack_task.py runner --work work/demo --render A 
 它会自动克隆、探测你装了哪些 agent、在 §2 问你 5 个问题（装给谁 / 人设 / 配音 / 有没有 EAC / trio 还是 duo），
 然后装 skill、跑依赖体检、生成本地人设、做一条 5 秒录屏验证，最后按模板汇报。部署文档是给 AI 执行的，人只要看 `docs/QUICKSTART.md`。
 
-## 两种模式，四个 skill
+## 三种用法，五个 skill
 
 > 写稿规范**不另立**：口播风格、三层自检（形式 / 风骨 / 念出来）、
 > `outline.md` 格式，全部直接用上游 `web-video-presentation` 的
@@ -80,13 +82,15 @@ python skills/reelforge/scripts/pack_task.py runner --work work/demo --render A 
 |---|---|---|---|
 | **trio** | WorkBuddy（agent 当总控） | `reelforge` + `reelforge-writer` + `reelforge-runner` | 批量、无人值守，手机上也能盯 |
 | **duo** | **你**（人在电脑前） | `reelforge-duo` + `reelforge-writer` + `reelforge-runner` | 边看边调，一次性高质量 |
+| **solo** | 一个 agent 全包 | 同一个 agent 依次用 `reelforge` → `writer` → `runner` | 试水、个人、没有多 agent 条件 |
 
-两种模式**共用同一套门槛、脚本、素材库和参考度审计**，
+三种用法**共用同一套门槛、脚本、素材库和参考度审计**，
 差别只在「谁派活、谁问验收」。切换：`config/pipeline.yaml` 的 `mode`。
 
 | skill | 给谁 | 内容 |
 |---|---|---|
-| [`reelforge`](skills/reelforge/) | trio 总控 | 状态机、参考度审计、任务包、素材库、验收卡 |
+| [`reelforge`](skills/reelforge/) | 总控 | 状态机、参考度审计、任务包、素材库、验收卡 |
+| [`reelforge-router`](skills/reelforge-router/) | 入口路由 | 视频任务先读它，按场景分发到上面四个 |
 | [`reelforge-duo`](skills/reelforge-duo/) | duo 总控（执行 agent 兼） | 交接稿生成、收稿校验、给人生成验收卡 |
 | [`reelforge-writer`](skills/reelforge-writer/) | 写稿 | 口播化规则、去 AI 味、参考预算、输出契约 |
 | [`reelforge-runner`](skills/reelforge-runner/) | 执行 | wvp 全流程、agent-teams 并行、TTS、录屏、验收 |
@@ -108,7 +112,8 @@ sha256 去重、授权字段、`used_in` 追踪，交付时能直接出素材授
 
 ```
 skills/
-  reelforge/          trio 总控 skill（scripts + references + 配置示例）
+  reelforge/         总控 skill（scripts + references + 配置示例）
+  reelforge-router/  入口路由 skill（视频任务先读）
   reelforge-duo/      duo 总控 skill（人在前）
   reelforge-writer/   写稿 skill
   reelforge-runner/   执行 skill（含 record.mjs）

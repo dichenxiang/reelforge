@@ -5,7 +5,7 @@ description: 双人模式的视频生产总控。人在前当总控（Antigravit
 
 # ReelForge Duo（双人模式）
 
-三 agent 模式里，总控是 WorkBuddy；双人模式里，**总控是你（人）**，
+trio 模式里，总控可以由 WorkBuddy 这类 agent 担任（也可以一个 agent 全包）；双人模式里，**总控是你（人）**，
 执行 agent 负责把所有判断题递给你，其余全部自己干完。
 
 ```
@@ -15,7 +15,7 @@ description: 双人模式的视频生产总控。人在前当总控（Antigravit
    └── 执行 agent：你现在读的这个 skill（Harness / Codex / 任何能跑命令的）
 ```
 
-三 agent 模式与双人模式**共用同一套脚本和同一套门槛**，只是「谁来派活」不同：
+trio 与 duo **共用同一套脚本和同一套门槛**，只是「谁来派活」不同：
 - 三人模式：WorkBuddy 派活、轮询、把验收卡发到会话
 - 双人模式：执行 agent 派活、直接问你、当面拿到你的「过」
 

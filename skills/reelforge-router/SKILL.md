@@ -1,6 +1,6 @@
 ---
 name: reelforge-router
-description: 用户要做/改短视频、产品宣传片、口播视频、知识视频，或把文章/主题/参考片做成视频时，先读这个技能。它把任务路由到 reelforge（三端流水线）、reelforge-duo（人在前）、reelforge-writer（只写稿）、reelforge-runner（只出片），并强制先问四件事：人设、路线 A/B、配音方式、字幕交付。
+description: 用户要做/改短视频、产品宣传片、口播视频、知识视频，或把文章/主题/参考片做成视频时，先读这个技能。它把任务路由到 reelforge（流水线，可单 agent 全包）、reelforge-duo（人在前）、reelforge-writer（只写稿）、reelforge-runner（只出片），并强制先问四件事：人设、路线 A/B、配音方式、字幕交付。
 ---
 
 # ReelForge 路由（先读我）

@@ -17,7 +17,7 @@ python scripts/state.py gate --work work/demo --name script_gate
 
 | 脚本 | 作用 |
 |---|---|
-| `state.py` | 三端共用状态机（stage / status / gate / jobs） |
+| `state.py` | 三部分共用状态机（stage / status / gate / jobs） |
 | `similarity.py` | 参考度审计：结构 60% + 文案 40%，上限 60 |
 | `pack_task.py` | 生成 writer / runner 任务包 |
 | `assets.py` | 素材库：入库、检索、投放、授权清单 |
@@ -34,7 +34,7 @@ python scripts/state.py gate --work work/demo --name script_gate
 
 ## 文档
 
-- `references/orchestration.md`：三端协作与轮询
+- `references/orchestration.md`：三部分协作与轮询
 - `references/asset-library.md`：素材库
 - `references/script-contract.md`：脚本契约
 - 根目录 `DEPLOY.md` / `AGENT_DEPLOY.md`：换 agent、换模型

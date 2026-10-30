@@ -1,6 +1,6 @@
 ---
 name: reelforge
-description: 三端编排的短视频生产流水线。总控（本 skill）负责拆解、状态机、参考度审计与验收；写稿交给 reelforge-writer（任意强写作模型，如 Gemini 4 Argon）；出片交给 reelforge-runner（任意能执行命令的编码 agent，如 DeepSeek Harness）。支持「完全自定义主题」和「参考片最多 60%、默认 40%」两种模式，口播稿必须先确认再开工，成片为 16:9（默认 wvp 章节+录屏；可选 EAC film `__seek(t)` 时间轴）。
+description: 模块化短视频生产流水线（总控/写稿/执行三部分，可一个 agent 全包）。总控（本 skill）负责拆解、状态机、参考度审计与验收；写稿交给 reelforge-writer（任意强写作模型，如 Gemini 4 Argon）；出片交给 reelforge-runner（任意能执行命令的编码 agent，如 DeepSeek Harness）。支持「完全自定义主题」和「参考片最多 60%、默认 40%」两种模式，口播稿必须先确认再开工，成片为 16:9（默认 wvp 章节+录屏；可选 EAC film `__seek(t)` 时间轴）。
 ---
 
 # ReelForge
@@ -17,7 +17,7 @@ description: 三端编排的短视频生产流水线。总控（本 skill）负�
 | 执行 | 编码 agent（默认 DeepSeek Harness，**官方来源** `deepseek-flash`＝V4.1 Flash，思考 max；可切 WorkBuddy 来源） | `reelforge-runner` | wvp 工程、章节、音频、录屏 |
 | 出图 | 任意图像能力 | — | 封面、图表、插图 |
 
-三端通过**文件 + `state.json`** 协作，谁都能换，只要读写同一份工作目录。
+三部分通过**文件 + `state.json`** 协作；可以三个 agent 分工，也可以一个 agent 全包，只要读写同一份工作目录。
 换 agent 的部署方法见 `DEPLOY.md` / `AGENT_DEPLOY.md`。
 
 ### 两种运行模式（并存，按场景切换）
@@ -197,7 +197,7 @@ python scripts/assets.py stats
 
 ```
 work/<slug>/
-  state.json                 三端共用状态机
+  state.json                 三部分共用状态机
   tasks/{writer,runner}.md   任务包
   reference.json             借什么/避什么/预算
   script.md script.json      writer 产出
@@ -235,7 +235,7 @@ work/<slug>/
 
 | 文件 | 用途 |
 |---|---|
-| `references/orchestration.md` | 三端编排、轮询、验收卡模板 |
+| `references/orchestration.md` | 三部分编排、轮询、验收卡模板 |
 | `references/asset-library.md` | 素材库 schema 与工作流 |
 | `references/script-contract.md` | `script.json` 契约 |
 | `references/wvp-handoff.md` | wvp 六阶段操作 |

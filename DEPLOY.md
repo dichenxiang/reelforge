@@ -4,11 +4,11 @@
 > 本文件是人读的背景与原理；`AGENT_DEPLOY.md` 是给 agent 执行的手册。
 
 
-ReelForge 把短视频生产拆成三个角色。**角色和具体产品解耦**：
+ReelForge 把短视频生产拆成三部分（总控 / 写稿 / 执行）——这是**职责边界**，不是必须三个 agent；单 agent 全包也可以。**角色和具体产品解耦**：
 你可以用 WorkBuddy + Antigravity + DeepSeek Harness（默认组合），
 也可以换成 Claude Code + 任意写作模型 + Codex，只要满足角色能力。
 
-## 1. 三个角色
+## 1. 三部分职责
 
 | 角色 | 能力要求 | 默认实现 | 用什么 skill |
 |---|---|---|---|
@@ -176,6 +176,7 @@ dsh plugin --profile web add --save-exact @nanmicoder/dsh-agent-teams@0.1.27
 
 | 模式 | 装法 | 谁当总控 | 怎么触发 |
 |---|---|---|---|
+| solo | `bash install.sh --dsh`（任意一个） | 同一个 agent | 依次做总控/写稿/执行，最省事 |
 | trio | `bash install.sh --workbuddy --antigravity --dsh` | WorkBuddy | 在 WorkBuddy 里说「做一条 X 片子」 |
 | duo | `bash install.sh --antigravity --dsh`（或 `--codex`） | **你** | 在 Harness / Codex 里说「按 reelforge-duo 做一条 X 片子」 |
 
