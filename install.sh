@@ -109,17 +109,20 @@ install_for() {
       copy_skill reelforge-writer "$UHOME/.workbuddy/skills"
       copy_skill reelforge-runner "$UHOME/.workbuddy/skills"
       copy_skill reelforge-duo "$UHOME/.workbuddy/skills"
+      copy_skill reelforge-router "$UHOME/.workbuddy/skills"
       ensure_config "$UHOME/.workbuddy/skills"
       ;;
     antigravity)
       echo "Antigravity"
       copy_skill reelforge-writer "$UHOME/.gemini/antigravity/skills"
+      copy_skill reelforge-router "$UHOME/.gemini/antigravity/skills"
       ;;
     dsh)
       echo "DeepSeek Harness"
       copy_skill reelforge-runner "$UHOME/.dsh/skills"
       copy_skill reelforge-duo "$UHOME/.dsh/skills"
       copy_skill reelforge "$UHOME/.dsh/skills"   # duo 依赖总控的脚本（state/similarity/pack_task）
+      copy_skill reelforge-router "$UHOME/.dsh/skills"
       ;;
     claude)
       echo "Claude Code"
@@ -127,6 +130,7 @@ install_for() {
       copy_skill reelforge-writer "$UHOME/.claude/skills"
       copy_skill reelforge-runner "$UHOME/.claude/skills"
       copy_skill reelforge-duo "$UHOME/.claude/skills"
+      copy_skill reelforge-router "$UHOME/.claude/skills"
       ensure_config "$UHOME/.claude/skills"
       ;;
     codex)
@@ -135,6 +139,7 @@ install_for() {
       copy_skill reelforge-writer "$UHOME/.codex/skills"
       copy_skill reelforge-runner "$UHOME/.codex/skills"
       copy_skill reelforge-duo "$UHOME/.codex/skills"
+      copy_skill reelforge-router "$UHOME/.codex/skills"
       ensure_config "$UHOME/.codex/skills"
       ;;
   esac
