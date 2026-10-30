@@ -39,7 +39,7 @@ python --version; node -v; npm -v; jq --version; ffmpeg -version | head -1; git 
 | `~/.claude/skills` | Claude Code | 全部 |
 | `~/.codex/skills` | Codex CLI | 全部 |
 | `~/.workbuddy/skills` | WorkBuddy | 全部 |
-| `~/.gemini/antigravity/skills` | Antigravity | 写稿 |
+| `~/.gemini/antigravity/skills` | Antigravity | 全部（与其他 agent 相同） |
 
 一个都没有 → 问用户用哪个；仍没有 → 按 §3 的“无 skills 机制”降级（写进 `AGENTS.md`）。
 

@@ -23,11 +23,11 @@ usage() {
   cat <<'EOF'
 
 目标（可多选）：
-  --workbuddy     ~/.workbuddy/skills       （总控 + 写稿 + 执行）
-  --antigravity   ~/.gemini/antigravity/skills （写稿）
-  --dsh           ~/.dsh/skills             （执行）
-  --claude        ~/.claude/skills          （三个都装）
-  --codex         ~/.codex/skills           （三个都装）
+  --workbuddy     ~/.workbuddy/skills        （完整一套）
+  --antigravity   ~/.gemini/antigravity/skills （完整一套）
+  --dsh           ~/.dsh/skills              （完整一套）
+  --claude        ~/.claude/skills           （完整一套）
+  --codex         ~/.codex/skills            （完整一套）
   --all           以上全部
 
 其它：
@@ -101,48 +101,21 @@ ensure_config() {
 }
 
 install_for() {
-  local t="$1"
+  local t="$1" root=""
   case "$t" in
-    workbuddy)
-      echo "WorkBuddy"
-      copy_skill reelforge        "$UHOME/.workbuddy/skills"
-      copy_skill reelforge-writer "$UHOME/.workbuddy/skills"
-      copy_skill reelforge-runner "$UHOME/.workbuddy/skills"
-      copy_skill reelforge-duo "$UHOME/.workbuddy/skills"
-      copy_skill reelforge-router "$UHOME/.workbuddy/skills"
-      ensure_config "$UHOME/.workbuddy/skills"
-      ;;
-    antigravity)
-      echo "Antigravity"
-      copy_skill reelforge-writer "$UHOME/.gemini/antigravity/skills"
-      copy_skill reelforge-router "$UHOME/.gemini/antigravity/skills"
-      ;;
-    dsh)
-      echo "DeepSeek Harness"
-      copy_skill reelforge-runner "$UHOME/.dsh/skills"
-      copy_skill reelforge-duo "$UHOME/.dsh/skills"
-      copy_skill reelforge "$UHOME/.dsh/skills"   # duo 依赖总控的脚本（state/similarity/pack_task）
-      copy_skill reelforge-router "$UHOME/.dsh/skills"
-      ;;
-    claude)
-      echo "Claude Code"
-      copy_skill reelforge        "$UHOME/.claude/skills"
-      copy_skill reelforge-writer "$UHOME/.claude/skills"
-      copy_skill reelforge-runner "$UHOME/.claude/skills"
-      copy_skill reelforge-duo "$UHOME/.claude/skills"
-      copy_skill reelforge-router "$UHOME/.claude/skills"
-      ensure_config "$UHOME/.claude/skills"
-      ;;
-    codex)
-      echo "Codex CLI"
-      copy_skill reelforge        "$UHOME/.codex/skills"
-      copy_skill reelforge-writer "$UHOME/.codex/skills"
-      copy_skill reelforge-runner "$UHOME/.codex/skills"
-      copy_skill reelforge-duo "$UHOME/.codex/skills"
-      copy_skill reelforge-router "$UHOME/.codex/skills"
-      ensure_config "$UHOME/.codex/skills"
-      ;;
+    workbuddy)   root="$UHOME/.workbuddy/skills" ;;
+    antigravity) root="$UHOME/.gemini/antigravity/skills" ;;
+    dsh)         root="$UHOME/.dsh/skills" ;;
+    claude)      root="$UHOME/.claude/skills" ;;
+    codex)       root="$UHOME/.codex/skills" ;;
+    *) echo "未知目标：$t"; return 1 ;;
   esac
+  echo "→ $t ($root)"
+  # 每个 agent 都装完整的一套：总控 / 写稿 / 执行 / duo / 路由
+  for s in reelforge reelforge-writer reelforge-runner reelforge-duo reelforge-router; do
+    copy_skill "$s" "$root"
+  done
+  ensure_config "$root"
 }
 
 for t in "${TARGETS[@]:-}"; do
