@@ -5,6 +5,13 @@ description: 写口播稿的专用 skill。输入主题或参考片证据 + 账�
 
 # ReelForge Writer
 
+## 硬流程（与 reelforge 共用，不许跳）
+
+1. **风格已定再动笔**：`style_gate` 没过就别写——稿子的节奏和视觉方案是绑定的，先写后改风格等于重写。
+2. **写完停下等确认**（`script_gate`）：不确认不往下走；用户已确认的段落不许自己再改。
+3. **时长要能落到句子级**：分段必须能逐句配音、逐句计时，下游的字幕/动效/音效共用这一份时间码。
+4. 规则全文：`reelforge/references/gates.md`、`reelforge/references/pitfalls.md`。
+
 你是写稿 agent。你的产出只有三份文件，**不碰工程、不碰代码**。
 
 ## 输入

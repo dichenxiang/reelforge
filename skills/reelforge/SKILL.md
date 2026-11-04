@@ -1,6 +1,6 @@
 ---
 name: reelforge
-description: 模块化短视频生产流水线（总控/写稿/执行三部分，可一个 agent 全包）。总控（本 skill）负责拆解、状态机、参考度审计与验收；写稿交给 reelforge-writer（任意强写作模型，如 Gemini 4 Argon）；出片交给 reelforge-runner（任意能执行命令的编码 agent，如 DeepSeek Harness）。支持「完全自定义主题」和「参考片最多 60%、默认 40%」两种模式，口播稿必须先确认再开工，成片为 16:9（默认 wvp 章节+录屏；可选 EAC film `__seek(t)` 时间轴）。
+description: 模块化短视频生产流水线（总控/写稿/执行三部分，可一个 agent 全包）。总控（本 skill）负责拆解、状态机、参考度审计与验收；写稿交给 reelforge-writer（任意强写作模型，如 Gemini 4 Argon）；出片交给 reelforge-runner（任意能执行命令的编码 agent，如 DeepSeek Harness）。支持「完全自定义主题」和「参考片最多 60%、默认 40%」两种模式，五道门强制（风格→口播稿→样片→音频→成片），成片为 16:9（默认 wvp 章节+录屏；可选 EAC film `__seek(t)` 时间轴）。
 ---
 
 # ReelForge
@@ -37,18 +37,20 @@ description: 模块化短视频生产流水线（总控/写稿/执行三部分�
 
 ```
 0  intake      收主题/素材/是否参考 → state.py init
+0.5 style      🛑 style_gate：给 2–3 个风格候选（截图/参考帧），用户选
 1  reference   可选：analyze.py 拆参考 → reference.json（结构/手法/禁用）
 2  script      pack_task.py writer → 写稿 agent → script.md / script.json
 3  audit       similarity.py（默认40，上限60）+ 🛑 script_gate 用户确认口播稿
-3.5 options    🛑 用户选：路线 A/B、模板、配音方式/预设、字幕
-4  build       make_wvp_inputs.py → pack_task.py runner → 执行 agent 跑 wvp
-5  gates       🛑 chapter_gate 第1章 → 🛑 audio_gate 音频
+3.5 options    🛑 用户选：路线 A/B、配音方式/预设、字幕（模板已在 0.5 定）
+4  pilot       🛑 pilot_gate：先出 15–20 秒样片，用户看过再全篇
+5  build       make_wvp_inputs.py → pack_task.py runner → 执行 agent 跑 wvp
 6  record      人工 OBS 或 record.mjs
 7  deliver     ffprobe 验收 → 🛑 final_gate → 交付 + state done
 ```
 
-四道门（`script_gate` / `chapter_gate` / `audio_gate` / `final_gate`）**不能跳**；
+五道门（`style_gate` / `script_gate` / `pilot_gate` / `audio_gate` / `final_gate`）**不能跳**；
 用户明确说「不用看」才可跳过，并把原话写进 `state.json` 的 `gate_note`。
+门怎么开、卡里写什么：`references/gates.md`。
 
 ## 0 · 开工
 
@@ -131,10 +133,12 @@ python scripts/make_wvp_inputs.py --work work/<slug>   # → outline.md / articl
 
 ## 3.5 · 出片前四问（稿子确认后立刻问，别自己定）
 
+> 顺序是：**先风格 → 再稿子 → 再样片 → 再全篇**。风格没定就别写稿，稿子没确认就别开工，样片没看过就别全篇。
+
 | 问题 | 选项 | 写进 state |
 |---|---|---|
 | 出片路线 | A=HTML 渲染+录屏；B=EAC film `__seek(t)` 时间轴 | `--meta render=A/B` |
-| 模板/风格 | `eac_probe.py` 列模板让用户选；没装 EAC 就回 A | `--meta template=<id>` |
+| 模板/风格 | **已在 0.5 风格门定过**，这里只做复核 | `--meta template=<id>` |
 | 配音 | IndexTTS 预设 / 参考干声 / edge-tts / 自定义 | `--meta tts_provider=... --meta tts_preset=...` |
 | 字幕 | 烧录 / 外挂 SRT / 不要 | `--meta subs=burn/srt/none` |
 
@@ -211,14 +215,19 @@ work/<slug>/
 
 ## 红线
 
-1. **口播稿先确认**：`script_gate` 没过，不许 scaffold。
-2. **参考度 ≤60**：`similarity.py` 退出码 2 就是硬失败。
-3. **文案原创**：结构可借，句子不能借。
-4. **四道门不跳**：每道门都要 `state.py gate` + 用户确认。
-5. **执行 agent 不改稿**：要改稿回 writer，改完重新审计 + 再确认。
-6. **16:9 固定**：wvp 只做 1920×1080，竖屏需求在 intake 就拒掉或换工具。
-7. **不写回 skill 目录**：产物只在 `work/`。
-8. **素材必须有授权字段**：`license=unknown` 的素材不能进成片。
+1. **先选风格**：`style_gate` 没过，不许写稿；不许替用户默认模板。
+2. **口播稿先确认**：`script_gate` 没过，不许开工。
+3. **先做样片**：`pilot_gate` 没过，不许启动全篇（样片必须用最终参数，不许临时字体/配色）。
+4. **参考度 ≤60**：`similarity.py` 退出码 2 就是硬失败。
+5. **文案原创**：结构可借，句子不能借。
+6. **五道门不跳**：每道门都要 `state.py gate` + 用户确认。
+7. **执行 agent 不改稿**：要改稿回 writer，改完重新审计 + 再确认。
+8. **16:9 固定**：wvp 只做 1920×1080，竖屏需求在 intake 就拒掉或换工具。
+9. **不写回 skill 目录**：产物只在 `work/`。
+10. **素材必须有授权字段**：`license=unknown` 的素材不能进成片。
+11. **新动效必须入库**：本片新写的动效，交付前 `effects.py register` + 出基准帧；不许只留在项目目录。
+12. **时间只有一个真相源**：字幕/动效/音效共用同一份句子级时间码，禁止各自按比例估算。
+13. **改一处验一处**：改完抽一帧对比再说"好了"，不验像素不下结论。
 
 ## 常见故障
 
@@ -229,6 +238,10 @@ work/<slug>/
 | dsh 没起团队 | 确认 `@nanmicoder/dsh-agent-teams` 已装，任务以 `/agent-teams ` 开头 |
 | Antigravity 模型档位不对 | MCP 只认 `flash`/`flash_lite`/`pro`，要用 Argon 需改桥接 enum，见 DEPLOY.md |
 | 音频和 step 对不上 | 改过 `narrations.ts` 没重跑 extract/synthesize |
+| 改了参数但画面没变 | 中间产物按"文件存在"缓存了；换输入指纹或删中间产物重跑 |
+| 音画整体错位 | 时间线改过但旁白没重算；校验 `abs(画面-旁白) < 0.3` |
+| 多层叠图后几层不出现 | 某一路输入被裁短，`shortest` 截断了链路；输入给足整段 |
+| 换 agent 后找不到效果库 | 先跑 `python scripts/effects.py where`，路径以它为准 |
 | 录屏没声音 | Playwright 不录系统声；用 `mix_audio.py` 拼轨后 `--audio`，或人工 OBS |
 
 ## 参考
@@ -240,5 +253,8 @@ work/<slug>/
 | `references/script-contract.md` | `script.json` 契约 |
 | `references/wvp-handoff.md` | wvp 六阶段操作 |
 | `references/tts.md` | IndexTTS 服务与 provider |
+| `references/gates.md` | 五道门：时机、产物、验收卡模板 |
+| `references/effects-library.md` | 效果库：契约、命令、入库与回归 |
+| `references/pitfalls.md` | 踩坑清单（硬规则，开工前必读） |
 | `references/analysis.md` | 拆解口径 |
 | `DEPLOY.md` / `AGENT_DEPLOY.md` | 换 agent、换模型的部署方法 |

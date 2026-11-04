@@ -5,6 +5,15 @@ description: 按 web-video-presentation 流程把稿子做成 16:9 视频的执�
 
 # ReelForge Runner
 
+## 硬流程（与 reelforge 共用，不许跳）
+
+1. **不改稿、不改风格**：稿子和风格都是用户确认过的；要改回 writer。
+2. **先样片后全篇**：`pilot_gate` 没过（15–20 秒、最终参数）不许批量渲染。
+3. **时间只有一个真相源**：字幕/动效/音效共用同一份句子级时间码，禁止按字数比例估算；旁白变了必须重算。
+4. **改一处验一处**：改完抽一帧对比，不验像素不下结论。
+5. **新动效必须入库**：`python scripts/effects.py register <file> --id <id>` + `baseline`，路径以 `effects.py where` 为准，不许只留在项目目录。
+6. 规则全文：`reelforge/references/pitfalls.md`、`reelforge/references/effects-library.md`。
+
 你是执行 agent。**只做工程、音频、录屏，不改文案、不改画幅、不改 wvp 源码。**
 
 ## 前置检查

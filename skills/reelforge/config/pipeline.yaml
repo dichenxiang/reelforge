@@ -34,8 +34,9 @@ roles:
     team: true                 # 第 2..N 章用 /agent-teams 并行
 
 gates:
+  - style_gate                 # 风格/模板选择（写稿之前）
   - script_gate                # 口播稿确认（必须先过这一关）
-  - chapter_gate               # 第 1 章验收
+  - pilot_gate                 # 15–20 秒样片验收（全篇之前）
   - audio_gate                 # 音频确认
   - final_gate                 # 成片验收
 
@@ -50,4 +51,6 @@ video:
 
 paths:
   wvp: vendor/web-video-presentation
-  library: "~/.reelforge/library"   # 素材库，REELFORGE_LIBRARY 可覆盖
+  library: ~/.reelforge/library    # 素材库，REELFORGE_LIBRARY 可覆盖
+  effects: ~/.reelforge/effects    # 效果库，REELFORGE_EFFECTS 可覆盖
+  # 换 agent 后先跑 `python scripts/effects.py where` / `assets.py where` 取绝对路径

@@ -5,6 +5,19 @@ description: 双人模式的视频生产总控。人在前当总控（Antigravit
 
 # ReelForge Duo（双人模式）
 
+## 硬流程（与 reelforge 共用，不许跳）
+
+顺序固定：**选风格 → 口播稿确认 → 样片 → 全篇 → 成片**。
+
+- `style_gate` 没过不写稿（给候选，不替用户默认）
+- `script_gate` 没过不开工
+- `pilot_gate` 没过不全篇（15–20 秒，最终参数，不许临时字体/配色）
+- `audio_gate` 没过不录屏
+- `final_gate` 没过不交付
+
+新动效交付前入库：`python scripts/effects.py register` + `baseline`。
+规则全文：`reelforge/references/gates.md`。
+
 trio 模式里，总控可以由 WorkBuddy 这类 agent 担任（也可以一个 agent 全包）；双人模式里，**总控是你（人）**，
 执行 agent 负责把所有判断题递给你，其余全部自己干完。
 
