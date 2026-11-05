@@ -1,6 +1,6 @@
 ---
 name: reelforge
-description: 模块化短视频生产流水线（总控/写稿/执行三部分，可一个 agent 全包）。总控（本 skill）负责拆解、状态机、参考度审计与验收；写稿交给 reelforge-writer（任意强写作模型，如 Gemini 4 Argon）；出片交给 reelforge-runner（任意能执行命令的编码 agent，如 DeepSeek Harness）。支持「完全自定义主题」和「参考片最多 60%、默认 40%」两种模式，五道门强制（风格→口播稿→样片→音频→成片），成片为 16:9（默认 wvp 章节+录屏；可选 EAC film `__seek(t)` 时间轴）。
+description: 模块化短视频生产流水线（总控/写稿/执行三部分，可一个 agent 全包）。总控（本 skill）负责拆解、状态机、参考度审计与验收；写稿交给 reelforge-writer（任意强写作模型，如 Gemini 4 Argon）；出片交给 reelforge-runner（任意能执行命令的编码 agent，如 DeepSeek Harness）。支持「完全自定义主题」和「参考片最多 60%、默认 40%」两种模式，五道门强制（风格→口播稿→样片→音频→成片），成片为 16:9（默认 wvp 章节+录屏；可选 EAC film `__seek(t)` 时间轴）。内置 33 个可运行动效与 232 张配方卡，用 fx_pipeline.py 按口播稿自动匹配动效并渲染片段（plan/render/emit/check）；凡是做视频、加动效、字幕动画、转场、数据图表、放大镜高亮，一律先查效果库，不要手写动效。
 ---
 
 # ReelForge

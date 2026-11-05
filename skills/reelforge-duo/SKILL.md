@@ -15,8 +15,9 @@ description: 双人模式的视频生产总控。人在前当总控（Antigravit
 - `audio_gate` 没过不录屏
 - `final_gate` 没过不交付
 
-新动效交付前入库：`python scripts/effects.py register` + `baseline`。
-规则全文：`reelforge/references/gates.md`。
+新动效交付前入库：`effects.py` 只在总控 `reelforge` 目录，用 `python <RF>/scripts/effects.py register` + `baseline`。
+出片动效走统一效果库：`python <RF>/scripts/fx_pipeline.py plan --script script.md --out shots.json` → `render --shots shots.json --out-dir clips`；`<RF>` 按当前 agent 取 `~/.{workbuddy|codex|claude|gemini}/skills/reelforge`，四个目录内容一致，统一库本体在 `~/.reelforge/effects`。
+规则全文：`reelforge/references/gates.md`、`reelforge/references/effects-library.md`、`~/.reelforge/AGENT_ROUTING.md`。
 
 trio 模式里，总控可以由 WorkBuddy 这类 agent 担任（也可以一个 agent 全包）；双人模式里，**总控是你（人）**，
 执行 agent 负责把所有判断题递给你，其余全部自己干完。

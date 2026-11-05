@@ -10,7 +10,8 @@ description: 写口播稿的专用 skill。输入主题或参考片证据 + 账�
 1. **风格已定再动笔**：`style_gate` 没过就别写——稿子的节奏和视觉方案是绑定的，先写后改风格等于重写。
 2. **写完停下等确认**（`script_gate`）：不确认不往下走；用户已确认的段落不许自己再改。
 3. **时长要能落到句子级**：分段必须能逐句配音、逐句计时，下游的字幕/动效/音效共用这一份时间码。
-4. 规则全文：`reelforge/references/gates.md`、`reelforge/references/pitfalls.md`。
+4. **给下游留节拍**：稿子里保留设问 / 数据 / 对比 / 步骤 / 转折等语义节拍，别把长句揉成一坨；下游 `fx_pipeline.py plan` 按节拍自动配动效，带具体数字的句子才会命中图表卡。
+5. 规则全文：`reelforge/references/gates.md`、`reelforge/references/pitfalls.md`；效果库选型见 `reelforge/references/effects-library.md`（写稿时只需知道有 33 个可运行动效，不必自己指定）。
 
 你是写稿 agent。你的产出只有三份文件，**不碰工程、不碰代码**。
 

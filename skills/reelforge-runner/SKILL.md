@@ -1,6 +1,6 @@
 ---
 name: reelforge-runner
-description: 按 web-video-presentation 流程把稿子做成 16:9 视频的执行 skill。负责 scaffold、章节代码、agent-teams 并行、step 级 TTS、录屏与 ffprobe 验收。用于「把这个 outline 做成网页视频」「跑 wvp」「把旁白合成进工程」这类任务。不改稿、不做审美决策。
+description: 按 web-video-presentation 流程把稿子做成 16:9 视频的执行 skill。负责 scaffold、章节代码、agent-teams 并行、step 级 TTS、录屏与 ffprobe 验收。用于「把这个 outline 做成网页视频」「跑 wvp」「把旁白合成进工程」这类任务。不改稿、不做审美决策。出片动效一律走统一效果库 `fx_pipeline.py plan/render`，不要手写，也不要在 runner 目录里找 effects.py。
 ---
 
 # ReelForge Runner
@@ -11,10 +11,37 @@ description: 按 web-video-presentation 流程把稿子做成 16:9 视频的执�
 2. **先样片后全篇**：`pilot_gate` 没过（15–20 秒、最终参数）不许批量渲染。
 3. **时间只有一个真相源**：字幕/动效/音效共用同一份句子级时间码，禁止按字数比例估算；旁白变了必须重算。
 4. **改一处验一处**：改完抽一帧对比，不验像素不下结论。
-5. **新动效必须入库**：`python scripts/effects.py register <file> --id <id>` + `baseline`，路径以 `effects.py where` 为准，不许只留在项目目录。
-6. 规则全文：`reelforge/references/pitfalls.md`、`reelforge/references/effects-library.md`。
+5. **新动效必须入库**：`effects.py` 只在**总控 skill 目录**里，runner 目录没有；用 `python <RF>/scripts/effects.py register <file> --id <id>` + `baseline`，并写 `auto` 配方卡，不许只留在项目目录。
+6. 规则全文：`<RF>/references/pitfalls.md`、`<RF>/references/effects-library.md`。
 
 你是执行 agent。**只做工程、音频、录屏，不改文案、不改画幅、不改 wvp 源码。**
+
+## 效果库（出片必走，换 agent 不丢）
+
+`<RF>` = 总控 `reelforge` skill 目录，**按当前 agent 选**，四个目录内容完全相同：
+
+| agent | `<RF>` |
+|---|---|
+| WorkBuddy | `~/.workbuddy/skills/reelforge` |
+| Codex | `~/.codex/skills/reelforge` |
+| Claude / Antigravity | `~/.claude/skills/reelforge` |
+| Gemini | `~/.gemini/skills/reelforge` |
+
+统一效果库本体在 `~/.reelforge/effects`（`REELFORGE_EFFECTS` 可覆盖）；索引是「本地 + 随仓库合并、仓库优先」，本机库为空也能靠随仓库分发的 33 个效果直接出片。
+
+```bash
+RF=~/.codex/skills/reelforge                    # 换成上表对应目录
+W=work/<slug>                                   # 项目工作目录，稿子与 shots.json 都放这里
+python "$RF/scripts/fx_pipeline.py" check      # 全库自检（与 cwd 无关）
+python "$RF/scripts/fx_pipeline.py" plan --script "$W/script.md" --out "$W/shots.json" --with-transitions
+python "$RF/scripts/fx_pipeline.py" render --shots "$W/shots.json" --out-dir "$W/clips" --fps 24
+python "$RF/scripts/fx_pipeline.py" emit --shots "$W/shots.json"     # 生成 make.py 镜头表
+python "$RF/scripts/effects.py" where                                # 统一库绝对路径
+```
+
+`plan` / `render` 的输入输出一律给**绝对路径**（或先 `cd` 到项目工作目录）；不要在 runner 技能目录下直接写相对路径 `script.md`，那里没有稿子。
+
+`plan` 会按语义节拍自动配动效并填参，数据句没数字不会上图表；低置信自动退回基础文字动效。镜头表里可直接写 `{"fx": "bar_grow", "params": {...}}` 调 `effects/runtime.py`。ffmpeg 不在 PATH 时由 `runtime.ffmpeg_bin()` 自动找 `~/.local/bin`，或设 `REELFORGE_FFMPEG`。完整契约见 `<RF>/references/effects-library.md`、跨 agent 路由见 `~/.reelforge/AGENT_ROUTING.md`。
 
 ## 前置检查
 
