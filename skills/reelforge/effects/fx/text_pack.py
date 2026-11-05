@@ -21,14 +21,29 @@ def _base(p):
     return img, ImageDraw.Draw(img)
 
 
+def _fit_font(d, s, size, max_w=W - 160, bold=True):
+    """句子太长时自动缩字号，避免逐字/居中排版把首尾切出画面。
+
+    自动匹配会把整句口播原文塞进 text，长度不可控；不缩字号就会出现
+    「个 Muse，为什么别人...」这种开头被裁掉的成片事故。
+    """
+    f = font(int(size), bold=bold)
+    w = text_w(d, str(s), f)
+    if w > max_w and w > 0:
+        size = max(28, int(int(size) * max_w / w))
+        f = font(size, bold=bold)
+    return f, size
+
+
 # ---------------------------------------------------------------- 逐字升起
 def char_rise(t, total, params=None):
     p = {"text": "一句话，说清一件事", "size": 92, "y": 520, "stagger": 0.035,
          "dur": 0.42, "color": INK}
     p.update(params or {})
     img, d = _base(p)
-    f = font(int(p["size"]), bold=True)
     s = p["text"]
+    f, sz = _fit_font(d, s, p["size"])
+    p["size"] = sz
     total_w = sum(text_w(d, ch, f) for ch in s)
     x = (W - total_w) // 2
     for i, ch in enumerate(s):
@@ -52,8 +67,11 @@ def double_block_lines(t, total, params=None):
          "color2": (26, 22, 16)}
     p.update(params or {})
     img, d = _base(p)
-    f = font(int(p["size"]), bold=True)
-    for i, line in enumerate(p["lines"][:2]):
+    lines2 = p["lines"][:2]
+    sz = min(_fit_font(d, line, p["size"])[1] for line in lines2) if lines2 else p["size"]
+    p["size"] = sz                       # 两行同字号，色块才对称
+    f = font(sz, bold=True)
+    for i, line in enumerate(lines2):
         tw = text_w(d, line, f)
         q = ease((t - i * 0.12) / 0.26)
         if q <= 0:
@@ -87,7 +105,8 @@ def blur_focus_in(t, total, params=None):
     p = {"text": "它得自己猜光线、猜机位", "size": 88, "y": 520, "dur": 0.9, "color": INK}
     p.update(params or {})
     base, d = _base(p)
-    f = font(int(p["size"]), bold=True)
+    f, sz = _fit_font(d, p["text"], p["size"])
+    p["size"] = sz
     q = ease(t / p["dur"], "out")
     a = int(255 * q)
     blur = (1 - q) * int(p["size"] / 6)
@@ -107,7 +126,8 @@ def marker_highlight(t, total, params=None):
          "mark": (226, 190, 66), "delay": 0.25}
     p.update(params or {})
     img, d = _base(p)
-    f = font(int(p["size"]), bold=True)
+    f, sz = _fit_font(d, p["text"], p["size"])
+    p["size"] = sz
     tw = text_w(d, p["text"], f)
     x0 = (W - tw) // 2
     q = ease((t - p["delay"]) / 0.35)
@@ -135,14 +155,17 @@ def count_up(t, total, params=None):
     img, d = _base(p)
     q = ease(t / p["dur"], "out")
     val = int(p["value"] * q)
-    f = font(int(p["size"]), bold=True)
+    f, sz = _fit_font(d, str(p["value"]), p["size"], max_w=1200)
     fs = font(48, bold=False)
-    d.text((W // 2, p["label"] and 400 or 480), p["label"], font=fs, fill=MUTE, anchor="mm")
+    fl, _ = _fit_font(d, p["label"] or "", 48, max_w=1000, bold=False)
+    if p["label"]:
+        d.text((W // 2, 310), p["label"], font=fl, fill=MUTE, anchor="mm")
     nw = text_w(d, str(val), f)
     uw = text_w(d, p["unit"], fs)
     total_w = nw + uw + 12
-    d.text(((W - total_w) // 2, 560), str(val), font=f, fill=tuple(p["color"]), anchor="ls")
-    d.text(((W - total_w) // 2 + nw + 12, 560), p["unit"], font=fs, fill=AMBER, anchor="ls")
+    x = (W - total_w) // 2
+    d.text((x, 660), str(val), font=f, fill=tuple(p["color"]), anchor="ls")
+    d.text((x + nw + 12, 660), p["unit"], font=fs, fill=AMBER, anchor="ls")
     return img
 
 
@@ -157,7 +180,7 @@ def stamp_slam(t, total, params=None):
     sc = 1.7 - 0.7 * q
     a = int(235 * min(1.0, q * 1.6))
     size = int(p["size"])
-    f = font(size, bold=True)
+    f, size = _fit_font(d, p["text"], size, max_w=1200)
     tw = text_w(d, p["text"], f)
     bw, bh = tw + 80, size + 80
     seal = Image.new("RGBA", (bw + 40, bh + 40), (0, 0, 0, 0))

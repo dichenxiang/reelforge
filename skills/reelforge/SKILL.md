@@ -42,6 +42,7 @@ description: 模块化短视频生产流水线（总控/写稿/执行三部分�
 2  script      pack_task.py writer → 写稿 agent → script.md / script.json
 3  audit       similarity.py（默认40，上限60）+ 🛑 script_gate 用户确认口播稿
 3.5 options    🛑 用户选：路线 A/B、配音方式/预设、字幕（模板已在 0.5 定）
+3.6 fxplan     fx_pipeline.py plan → shots.json（稿子自动配动效，人只否决）
 4  pilot       🛑 pilot_gate：先出 15–20 秒样片，用户看过再全篇
 5  build       make_wvp_inputs.py → pack_task.py runner → 执行 agent 跑 wvp
 6  record      人工 OBS 或 record.mjs
@@ -51,6 +52,25 @@ description: 模块化短视频生产流水线（总控/写稿/执行三部分�
 五道门（`style_gate` / `script_gate` / `pilot_gate` / `audio_gate` / `final_gate`）**不能跳**；
 用户明确说「不用看」才可跳过，并把原话写进 `state.json` 的 `gate_note`。
 门怎么开、卡里写什么：`references/gates.md`。
+
+### 3.6 · 稿子自动配动效（不许再问用户「这里要什么动效」）
+
+`script_gate` 过后立刻跑，**样片必须用这套镜头表**：
+
+```bash
+python scripts/fx_pipeline.py check                      # 全库 33 个效果各渲一帧
+python scripts/fx_pipeline.py plan --script work/<slug>/script.md \
+       --out work/<slug>/shots.json --with-transitions --a a.mp4 --b b.mp4
+python scripts/fx_pipeline.py render --shots work/<slug>/shots.json \
+       --out-dir work/<slug>/clips --limit 4            # 先出 4 个片段给用户看
+python scripts/fx_pipeline.py emit --shots work/<slug>/shots.json   # 可粘进 make.py
+```
+
+- `plan` 先切语义拍 → 按 `BEAT_POOL` 圈候选 → 打分 → 按配方卡的 `auto` 自动填参；
+  数据类有准入门（没数据不许上图表），低置信回基础文字动效，不硬套卡。
+- 用户只做**否决**：换掉某个 `fx` 或改 `params`，不许反过来让人描述动效长什么样。
+- 项目侧镜头表写 `("fx", {"fx": "bar_grow", "params": {...}}, None, None, None, 1.0)`，
+  `make.py` 直接调 `effects/runtime.py` 出片段。细节见 `references/effects-library.md`。
 
 ## 0 · 开工
 
@@ -225,7 +245,9 @@ work/<slug>/
 8. **16:9 固定**：wvp 只做 1920×1080，竖屏需求在 intake 就拒掉或换工具。
 9. **不写回 skill 目录**：产物只在 `work/`。
 10. **素材必须有授权字段**：`license=unknown` 的素材不能进成片。
-11. **新动效必须入库**：本片新写的动效，交付前 `effects.py register` + 出基准帧；不许只留在项目目录。
+11. **新动效必须入库且能自动被调用**：本片新写的动效，交付前登记进 `effects/index.json`
+    （`entry / kind / status=ready / beats / auto / requires / pitfalls`）+ 出基准帧 +
+    `fx_pipeline.py check` 全量自检；不许只留在项目目录，也不许只写文档不登记 `auto`。
 12. **时间只有一个真相源**：字幕/动效/音效共用同一份句子级时间码，禁止各自按比例估算。
 13. **改一处验一处**：改完抽一帧对比再说"好了"，不验像素不下结论。
 
@@ -241,7 +263,11 @@ work/<slug>/
 | 改了参数但画面没变 | 中间产物按"文件存在"缓存了；换输入指纹或删中间产物重跑 |
 | 音画整体错位 | 时间线改过但旁白没重算；校验 `abs(画面-旁白) < 0.3` |
 | 多层叠图后几层不出现 | 某一路输入被裁短，`shortest` 截断了链路；输入给足整段 |
-| 换 agent 后找不到效果库 | 先跑 `python scripts/effects.py where`，路径以它为准 |
+| 换 agent 后找不到效果库 | 先跑 `python scripts/effects.py where`；索引是本地+仓库合并，仓库条目优先 |
+| 仓库新增效果本机看不见 | 旧脚本只认本地 `index.json`；改用 `fx_pipeline.py` / `runtime.load_index()` |
+| 渲染报 `FileNotFoundError [WinError 2]` | agent 会话 PATH 没有 ffmpeg；用 `runtime.ffmpeg_bin()`，或设 `REELFORGE_FFMPEG` |
+| 自动配的动效文不对题 | 检查配方卡 `beats`/`auto` 是否登记；数据类准入门会拦掉没数据的句子 |
+| 文字首尾被切出画面 | 自动匹配塞了整句原文；文本效果必须走 `_fit_font` 自动缩字号 |
 | 录屏没声音 | Playwright 不录系统声；用 `mix_audio.py` 拼轨后 `--audio`，或人工 OBS |
 
 ## 参考
@@ -254,7 +280,9 @@ work/<slug>/
 | `references/wvp-handoff.md` | wvp 六阶段操作 |
 | `references/tts.md` | IndexTTS 服务与 provider |
 | `references/gates.md` | 五道门：时机、产物、验收卡模板 |
-| `references/effects-library.md` | 效果库：契约、命令、入库与回归 |
+| `references/effects-library.md` | 效果库：配方卡契约、自动匹配、流水线接入、回归 |
+| `scripts/fx_pipeline.py` | 稿子 → 镜头表 → 片段（`plan/render/emit/check/preview`） |
+| `effects/runtime.py` | 项目侧渲染接缝（`render_frame` / `render_clip` / `ffmpeg_bin`） |
 | `references/pitfalls.md` | 踩坑清单（硬规则，开工前必读） |
 | `references/word-align.md` | 字级时间戳（可选增强）规格与接入点 |
 | `references/benchmark-motion-libs.md` | 三个动效库评估：能借什么、许可红线 |

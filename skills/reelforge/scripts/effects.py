@@ -67,13 +67,26 @@ def index_path() -> Path:
 
 
 def load() -> dict:
-    """本地 index 优先；没有就用随 skill 分发的种子（换机器也能直接用）。"""
+    """本地库 + 随 skill 分发的仓库库合并（按 id，仓库条目优先）。
+
+    只认本地会让「仓库新增效果」在本机不可见；只认仓库又会丢掉本机注册的
+    效果。两边合并且以仓库为源，换 agent / 换机器都能看到完整清单。
+    """
     p = index_path()
+    bundled = Path(__file__).resolve().parent.parent / "effects" / "index.json"
     if not p.exists():
-        p = Path(__file__).resolve().parent.parent / "effects" / "index.json"
-    if not p.exists():
+        if bundled.exists():
+            return json.loads(bundled.read_text(encoding="utf-8"))
         return {"version": 1, "updated_at": None, "root": str(root().resolve()), "items": []}
-    return json.loads(p.read_text(encoding="utf-8"))
+    idx = json.loads(p.read_text(encoding="utf-8"))
+    if bundled.exists() and bundled.resolve() != p.resolve():
+        b = json.loads(bundled.read_text(encoding="utf-8"))
+        merged = {x["id"]: x for x in idx.get("items", [])}
+        for x in b.get("items", []):
+            merged[x["id"]] = x
+        idx["items"] = list(merged.values())
+        idx["version"] = b.get("version", idx.get("version"))
+    return idx
 
 
 def save(idx: dict) -> None:
@@ -199,9 +212,10 @@ def cmd_path(a) -> int:
     if not hit:
         print(f"未登记：{a.id}", file=sys.stderr)
         return 1
-    p = root() / (hit["entry"].partition(":")[0])
+    part = hit["entry"].partition(":")[0]
+    p = Path(__file__).resolve().parent.parent / "effects" / part
     if not p.exists():
-        p = Path(__file__).resolve().parent.parent / "effects" / hit["entry"].partition(":")[0]
+        p = root() / part
     print(str(p.resolve()))
     return 0
 
@@ -209,7 +223,13 @@ def cmd_path(a) -> int:
 def cmd_check(_a) -> int:
     idx = load()
     runnable = [x for x in idx["items"] if x.get("entry")]
-    missing = [x["id"] for x in runnable if not (root() / x["entry"]).exists()]
+    bundled = Path(__file__).resolve().parent.parent / "effects"
+    missing = []
+    for x in runnable:
+        # entry 可能是 "fx/text_pack.py:char_rise"，冒号后面是函数名不是路径
+        part = x["entry"].partition(":")[0]
+        if not (root() / part).exists() and not (bundled / part).exists():
+            missing.append(x["id"])
     nobase = [x["id"] for x in runnable if not x.get("baseline")]
     pending = [x["id"] for x in idx["items"] if x.get("status") == "pending"]
     for i in missing:
@@ -233,9 +253,9 @@ def cmd_baseline(a) -> int:
         return 1
     entry = hit["entry"]
     path_part, _, fn_name = entry.partition(":")
-    f = root() / path_part
+    f = Path(__file__).resolve().parent.parent / "effects" / path_part
     if not f.exists():
-        f = Path(__file__).resolve().parent.parent / "effects" / path_part
+        f = root() / path_part
     import sys as _sys
     for extra in (str(f.parent), str(f.parent.parent), str(root()), str(root() / "fx")):
         if extra not in _sys.path:
@@ -247,10 +267,11 @@ def cmd_baseline(a) -> int:
     total = a.total
     extra = json.loads(a.params) if a.params else {}
     img = render_fn(a.at if a.at is not None else total * 0.6, total, extra)
-    out = root() / "baselines" / f"{a.id}.png"
+    from PIL import Image
+    out = root() / "baselines" / f"{a.id}.jpg"   # 与随仓库分发的基准帧同扩展名
     out.parent.mkdir(parents=True, exist_ok=True)
-    img.convert("RGB").save(out)
-    hit["baseline"] = f"baselines/{a.id}.png"
+    img.convert("RGB").resize((960, 540), Image.LANCZOS).save(out, quality=84, optimize=True)
+    hit["baseline"] = f"baselines/{a.id}.jpg"
     save(idx)
     print(f"基准帧已存 {out}")
     return 0

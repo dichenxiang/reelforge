@@ -49,8 +49,21 @@ video:
   fps: 30
   max_duration_sec: 1200
 
+fx:
+  # 稿子 → 动效：script_gate 之后、pilot_gate 之前必须跑，人只做否决
+  planner: scripts/fx_pipeline.py
+  runtime: effects/runtime.py
+  index: effects/index.json          # 本地 + 仓库合并，仓库条目优先
+  match:
+    threshold: 2.6                   # 低于此分回基础文字动效，不硬套卡
+    trans_every: 3                  # 每 3 拍插一个转场，不逐句插
+    data_requires_numbers: true     # 没数字/量词不许上结构性图表
+  verify: fx_pipeline.py check       # 全库逐帧回归，必须 0 异常
+  ffmpeg: REELFORGE_FFMPEG          # 未设置时 runtime 自己找 PATH / ~/.local/bin / imageio_ffmpeg
+
 paths:
   wvp: vendor/web-video-presentation
   library: ~/.reelforge/library    # 素材库，REELFORGE_LIBRARY 可覆盖
   effects: ~/.reelforge/effects    # 效果库，REELFORGE_EFFECTS 可覆盖
+  skill_home: REELFORGE_HOME       # 项目侧定位 skill（make.py 的 fx 分支用）
   # 换 agent 后先跑 `python scripts/effects.py where` / `assets.py where` 取绝对路径

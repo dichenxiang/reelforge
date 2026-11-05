@@ -12,7 +12,7 @@ import math
 
 from PIL import Image, ImageDraw, ImageFilter
 
-from _core import AMBER, H, INK, MUTE, W, ease, font, paper, text_w
+from _core import AMBER, H, INK, MUTE, W, ease, font, paper, text_w, wrap
 
 DOT = (176, 48, 40)
 
@@ -30,7 +30,22 @@ def _canvas(p):
         except Exception:
             pass
     img = paper(tuple(p.get("bg", (241, 235, 216))))
-    return img, ImageDraw.Draw(img)
+    d = ImageDraw.Draw(img)
+    # 无底图时把口播句子画成一块固定文字，标注才有落点。
+    # 注意：别拿 target 的宽高当文字区——index_badge / underline_sweep 的
+    # target 宽或高是 0，会把句子折成一条竖排单字串。
+    txt = p.get("text")
+    if txt:
+        bx, by, bw, bh = p.get("text_box", [560, 380, 800, 200])
+        fs = int(p.get("text_size", 52))
+        f = font(fs, bold=True)
+        lines = wrap(d, str(txt).rstrip("。！？，"), f, bw - 40)
+        lh = int(fs * 1.4)
+        ly = by + max(0, (bh - len(lines) * lh) // 2)
+        for line in lines:
+            d.text((bx + bw // 2, ly + lh // 2), line, font=f, fill=INK, anchor="mm")
+            ly += lh
+    return img, d
 
 
 def _tgt(p):

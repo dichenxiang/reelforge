@@ -1,6 +1,6 @@
 {
- "version": 1,
- "updated_at": "2026-11-05T22:44:01+08:00",
+ "version": 2,
+ "updated_at": "2026-11-05T23:34:52+08:00",
  "items": [
   {
    "id": "frame_zoom",
@@ -12,7 +12,7 @@
     "magnifier"
    ],
    "entry": "fx/frame_zoom.py",
-   "baseline": "baselines/frame_zoom.png",
+   "baseline": "baselines/frame_zoom.jpg",
    "used_in": [],
    "updated_at": "2026-11-04T22:08:44+08:00",
    "intent": "要强调截图里的某一行/某个按钮，又不想把画面拉满屏",
@@ -26,7 +26,20 @@
     "放大条贴边会被裁，要自动翻到下方",
     "气泡压在原文上会看不到它指的位置，必须加连接线"
    ],
-   "preview": null
+   "preview": null,
+   "kind": "shot",
+   "beats": [
+    "强调",
+    "例证"
+   ],
+   "auto": {
+    "image": "{image?}",
+    "focus": "{focus?}"
+   },
+   "requires": [
+    "image"
+   ],
+   "status": "ready"
   },
   {
    "id": "papers",
@@ -284,11 +297,20 @@
     "金句"
    ],
    "entry": "fx/text_pack.py:char_rise",
-   "baseline": "baselines/char_rise.png",
+   "baseline": "baselines/char_rise.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:00:00+08:00"
+   "updated_at": "2026-11-05T22:00:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "论点",
+    "金句",
+    "钩子"
+   ],
+   "auto": {
+    "text": "{sentence}"
+   }
   },
   {
    "id": "double_block_lines",
@@ -309,11 +331,19 @@
     "论点"
    ],
    "entry": "fx/text_pack.py:double_block_lines",
-   "baseline": "baselines/double_block_lines.png",
+   "baseline": "baselines/double_block_lines.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:00:00+08:00"
+   "updated_at": "2026-11-05T22:00:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "对比",
+    "列举"
+   ],
+   "auto": {
+    "lines": "{pair?}"
+   }
   },
   {
    "id": "blur_focus_in",
@@ -333,11 +363,20 @@
     "金句"
    ],
    "entry": "fx/text_pack.py:blur_focus_in",
-   "baseline": "baselines/blur_focus_in.png",
+   "baseline": "baselines/blur_focus_in.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:00:00+08:00"
+   "updated_at": "2026-11-05T22:00:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "论点",
+    "金句",
+    "设问"
+   ],
+   "auto": {
+    "text": "{sentence}"
+   }
   },
   {
    "id": "marker_highlight",
@@ -357,11 +396,19 @@
     "数据"
    ],
    "entry": "fx/text_pack.py:marker_highlight",
-   "baseline": "baselines/marker_highlight.png",
+   "baseline": "baselines/marker_highlight.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:00:00+08:00"
+   "updated_at": "2026-11-05T22:00:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "强调",
+    "数据"
+   ],
+   "auto": {
+    "text": "{sentence}"
+   }
   },
   {
    "id": "count_up",
@@ -381,11 +428,20 @@
     "对比"
    ],
    "entry": "fx/text_pack.py:count_up",
-   "baseline": "baselines/count_up.png",
+   "baseline": "baselines/count_up.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:00:00+08:00"
+   "updated_at": "2026-11-05T22:00:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "数据",
+    "对比"
+   ],
+   "auto": {
+    "label": "{short}",
+    "value": "{value?}"
+   }
   },
   {
    "id": "stamp_slam",
@@ -406,11 +462,20 @@
     "结尾"
    ],
    "entry": "fx/text_pack.py:stamp_slam",
-   "baseline": "baselines/stamp_slam.png",
+   "baseline": "baselines/stamp_slam.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:00:00+08:00"
+   "updated_at": "2026-11-05T22:00:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "金句",
+    "强调",
+    "结尾"
+   ],
+   "auto": {
+    "text": "{short}"
+   }
   },
   {
    "id": "callout_line",
@@ -431,11 +496,21 @@
     "例证"
    ],
    "entry": "fx/annot_pack.py:callout_line",
-   "baseline": "baselines/callout_line.png",
+   "baseline": "baselines/callout_line.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:50:00+08:00"
+   "updated_at": "2026-11-05T22:50:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "强调",
+    "例证"
+   ],
+   "auto": {
+    "label": "{short}",
+    "text": "{sentence}",
+    "target": "{target?}"
+   }
   },
   {
    "id": "circle_mark",
@@ -455,11 +530,19 @@
     "强调"
    ],
    "entry": "fx/annot_pack.py:circle_mark",
-   "baseline": "baselines/circle_mark.png",
+   "baseline": "baselines/circle_mark.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:50:00+08:00"
+   "updated_at": "2026-11-05T22:50:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "强调"
+   ],
+   "auto": {
+    "text": "{sentence}",
+    "target": "{target?}"
+   }
   },
   {
    "id": "spotlight_dim",
@@ -480,11 +563,20 @@
     "对比"
    ],
    "entry": "fx/annot_pack.py:spotlight_dim",
-   "baseline": "baselines/spotlight_dim.png",
+   "baseline": "baselines/spotlight_dim.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:50:00+08:00"
+   "updated_at": "2026-11-05T22:50:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "强调",
+    "对比"
+   ],
+   "auto": {
+    "text": "{sentence}",
+    "target": "{target?}"
+   }
   },
   {
    "id": "arrow_focus",
@@ -505,11 +597,20 @@
     "步骤"
    ],
    "entry": "fx/annot_pack.py:arrow_focus",
-   "baseline": "baselines/arrow_focus.png",
+   "baseline": "baselines/arrow_focus.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:50:00+08:00"
+   "updated_at": "2026-11-05T22:50:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "强调",
+    "步骤"
+   ],
+   "auto": {
+    "text": "{sentence}",
+    "target": "{target?}"
+   }
   },
   {
    "id": "corner_brackets",
@@ -530,11 +631,20 @@
     "标题"
    ],
    "entry": "fx/annot_pack.py:corner_brackets",
-   "baseline": "baselines/corner_brackets.png",
+   "baseline": "baselines/corner_brackets.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:50:00+08:00"
+   "updated_at": "2026-11-05T22:50:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "强调",
+    "标题"
+   ],
+   "auto": {
+    "text": "{sentence}",
+    "target": "{target?}"
+   }
   },
   {
    "id": "index_badge",
@@ -554,11 +664,20 @@
     "步骤"
    ],
    "entry": "fx/annot_pack.py:index_badge",
-   "baseline": "baselines/index_badge.png",
+   "baseline": "baselines/index_badge.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:50:00+08:00"
+   "updated_at": "2026-11-05T22:50:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "列举",
+    "步骤"
+   ],
+   "auto": {
+    "text": "{sentence}",
+    "target": "{target?}"
+   }
   },
   {
    "id": "underline_sweep",
@@ -578,11 +697,642 @@
     "金句"
    ],
    "entry": "fx/annot_pack.py:underline_sweep",
-   "baseline": "baselines/underline_sweep.png",
+   "baseline": "baselines/underline_sweep.jpg",
    "preview": null,
    "status": "ready",
    "used_in": [],
-   "updated_at": "2026-11-05T22:50:00+08:00"
+   "updated_at": "2026-11-05T22:50:00+08:00",
+   "kind": "shot",
+   "beats": [
+    "强调",
+    "金句"
+   ],
+   "auto": {
+    "text": "{sentence}",
+    "target": "{target?}"
+   }
+  },
+  {
+   "id": "bar_grow",
+   "title": "柱条生长",
+   "desc": "多根柱条错峰从基线长起，数值跟着柱高走",
+   "intent": "数据,对比,过程演示",
+   "energy": "高",
+   "inputs": [
+    "文",
+    "数据"
+   ],
+   "pitfalls": [
+    "数值必须随柱高一起涨，别让数字先到"
+   ],
+   "params": "values[], labels[], max",
+   "tags": [
+    "数据",
+    "对比",
+    "过程演示"
+   ],
+   "entry": "fx/data_pack.py:bar_grow",
+   "baseline": "baselines/bar_grow.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "shot",
+   "beats": [
+    "数据",
+    "对比",
+    "列举"
+   ],
+   "auto": {
+    "title": "{short}",
+    "values": "{numbers?}",
+    "labels": "{labels?}"
+   }
+  },
+  {
+   "id": "progress_ring",
+   "title": "进度环",
+   "desc": "圆环从 12 点顺时针画满，中心数字同步",
+   "intent": "数据,过程演示",
+   "energy": "中",
+   "inputs": [
+    "文",
+    "数据"
+   ],
+   "pitfalls": [
+    "只有单项占比时用环，多项用百分比环"
+   ],
+   "params": "value, label, ring",
+   "tags": [
+    "数据",
+    "过程演示"
+   ],
+   "entry": "fx/data_pack.py:progress_ring",
+   "baseline": "baselines/progress_ring.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "shot",
+   "beats": [
+    "数据",
+    "过程演示"
+   ],
+   "auto": {
+    "title": "{short}",
+    "value": "{value?}"
+   }
+  },
+  {
+   "id": "compare_bars",
+   "title": "对比双条",
+   "desc": "两条横条错峰刷出，深色 vs 琥珀色",
+   "intent": "对比,数据",
+   "energy": "中",
+   "inputs": [
+    "文",
+    "数据"
+   ],
+   "pitfalls": [
+    "两条必须同量纲，否则对比不成立"
+   ],
+   "params": "left[label,value], right[label,value]",
+   "tags": [
+    "对比",
+    "数据"
+   ],
+   "entry": "fx/data_pack.py:compare_bars",
+   "baseline": "baselines/compare_bars.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "shot",
+   "beats": [
+    "对比",
+    "转折",
+    "数据"
+   ],
+   "auto": {
+    "title": "{short}"
+   }
+  },
+  {
+   "id": "stacked_bar",
+   "title": "堆叠条",
+   "desc": "一根长条分段堆叠，逐段刷出",
+   "intent": "数据,列举,机制",
+   "energy": "中",
+   "inputs": [
+    "文",
+    "数据"
+   ],
+   "pitfalls": [
+    "段太窄时标签要自动隐藏，别挤成一团"
+   ],
+   "params": "parts[[label,value]]",
+   "tags": [
+    "数据",
+    "列举",
+    "机制"
+   ],
+   "entry": "fx/data_pack.py:stacked_bar",
+   "baseline": "baselines/stacked_bar.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "shot",
+   "beats": [
+    "数据",
+    "列举",
+    "机制"
+   ],
+   "auto": {
+    "title": "{short}"
+   }
+  },
+  {
+   "id": "percent_donut",
+   "title": "百分比环",
+   "desc": "扇区按比例展开，中间挖空，右侧图例",
+   "intent": "数据,对比,定义",
+   "energy": "中",
+   "inputs": [
+    "文",
+    "数据"
+   ],
+   "pitfalls": [
+    "扇区少于 3 块别用环，直接文字更清楚"
+   ],
+   "params": "slices[[label,value]]",
+   "tags": [
+    "数据",
+    "对比",
+    "定义"
+   ],
+   "entry": "fx/data_pack.py:percent_donut",
+   "baseline": "baselines/percent_donut.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "shot",
+   "beats": [
+    "数据",
+    "定义",
+    "对比"
+   ],
+   "auto": {
+    "title": "{short}"
+   }
+  },
+  {
+   "id": "rank_shift",
+   "title": "排名变化",
+   "desc": "列表条目按目标顺序上下换位并重新编号",
+   "intent": "对比,步骤,转折",
+   "energy": "高",
+   "inputs": [
+    "文",
+    "数据"
+   ],
+   "pitfalls": [
+    "插值必须用 ease，线性移动像滑条不像换序"
+   ],
+   "params": "rows[], order_to[]",
+   "tags": [
+    "对比",
+    "步骤",
+    "转折"
+   ],
+   "entry": "fx/data_pack.py:rank_shift",
+   "baseline": "baselines/rank_shift.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "shot",
+   "beats": [
+    "对比",
+    "步骤",
+    "转折"
+   ],
+   "auto": {
+    "title": "{short}",
+    "rows": "{labels?}"
+   }
+  },
+  {
+   "id": "line_chart",
+   "title": "折线爬升",
+   "desc": "折线逐段画出，数据点依次弹出",
+   "intent": "数据,过程演示,机制",
+   "energy": "中",
+   "inputs": [
+    "文",
+    "数据"
+   ],
+   "pitfalls": [
+    "点位数超过 8 个会挤，先聚合"
+   ],
+   "params": "points[], labels[]",
+   "tags": [
+    "数据",
+    "过程演示",
+    "机制"
+   ],
+   "entry": "fx/data_pack.py:line_chart",
+   "baseline": "baselines/line_chart.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "shot",
+   "beats": [
+    "数据",
+    "过程演示",
+    "机制"
+   ],
+   "auto": {
+    "title": "{short}",
+    "points": "{numbers?}"
+   }
+  },
+  {
+   "id": "metric_cards",
+   "title": "指标卡",
+   "desc": "三张数字卡带轻微回弹依次弹入",
+   "intent": "数据,列举,钩子",
+   "energy": "高",
+   "inputs": [
+    "文",
+    "数据"
+   ],
+   "pitfalls": [
+    "回弹缓动会短暂超出终点，卡片间要留足 gap"
+   ],
+   "params": "cards[[num,label]]",
+   "tags": [
+    "数据",
+    "列举",
+    "钩子"
+   ],
+   "entry": "fx/data_pack.py:metric_cards",
+   "baseline": "baselines/metric_cards.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "shot",
+   "beats": [
+    "数据",
+    "列举",
+    "钩子"
+   ],
+   "auto": {
+    "title": "{short}"
+   }
+  },
+  {
+   "id": "gauge_meter",
+   "title": "仪表盘",
+   "desc": "半圆刻度 + 指针摆到目标值",
+   "intent": "数据,强调",
+   "energy": "中",
+   "inputs": [
+    "文",
+    "数据"
+   ],
+   "pitfalls": [
+    "只适合 0-100 的完成度，别拿来画金额"
+   ],
+   "params": "value(0-100), label",
+   "tags": [
+    "数据",
+    "强调"
+   ],
+   "entry": "fx/data_pack.py:gauge_meter",
+   "baseline": "baselines/gauge_meter.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "shot",
+   "beats": [
+    "数据",
+    "强调"
+   ],
+   "auto": {
+    "title": "{short}",
+    "value": "{value?}"
+   }
+  },
+  {
+   "id": "delta_badge",
+   "title": "增减徽标",
+   "desc": "从 A 到 B 的大数字，涨幅徽章回弹冒出",
+   "intent": "数据,对比,金句",
+   "energy": "高",
+   "inputs": [
+    "文",
+    "数据"
+   ],
+   "pitfalls": [
+    "涨幅为负时箭头方向要跟着变"
+   ],
+   "params": "before, after, unit",
+   "tags": [
+    "数据",
+    "对比",
+    "金句"
+   ],
+   "entry": "fx/data_pack.py:delta_badge",
+   "baseline": "baselines/delta_badge.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "shot",
+   "beats": [
+    "数据",
+    "对比",
+    "金句"
+   ],
+   "auto": {
+    "title": "{short}",
+    "after": "{value?}"
+   }
+  },
+  {
+   "id": "flash_white",
+   "title": "白闪",
+   "desc": "A 推到白 → B 从白里显出",
+   "intent": "转场",
+   "energy": "高",
+   "inputs": [
+    "视频",
+    "图"
+   ],
+   "pitfalls": [
+    "白闪峰值别超过 0.12s，长了像掉帧"
+   ],
+   "params": "a_img, b_img, dur",
+   "tags": [
+    "转场"
+   ],
+   "entry": "fx/trans_pack.py:flash_white",
+   "baseline": "baselines/flash_white.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "transition",
+   "beats": [
+    "转场"
+   ],
+   "auto": {}
+  },
+  {
+   "id": "push_slide",
+   "title": "推镜",
+   "desc": "A 被推出画面，B 从对侧推入",
+   "intent": "转场,步骤",
+   "energy": "中",
+   "inputs": [
+    "视频",
+    "图"
+   ],
+   "pitfalls": [
+    "两段画面必须同一时间基准，否则接缝会跳"
+   ],
+   "params": "a_img, b_img, axis",
+   "tags": [
+    "转场",
+    "步骤"
+   ],
+   "entry": "fx/trans_pack.py:push_slide",
+   "baseline": "baselines/push_slide.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "transition",
+   "beats": [
+    "转场"
+   ],
+   "auto": {}
+  },
+  {
+   "id": "card_flip",
+   "title": "卡片翻",
+   "desc": "A 横向压成一张卡，B 再展开",
+   "intent": "转场,强调",
+   "energy": "中",
+   "inputs": [
+    "视频",
+    "图"
+   ],
+   "pitfalls": [
+    "压缩比别低于 0.8，太扁像纸条"
+   ],
+   "params": "a_img, b_img, squeeze",
+   "tags": [
+    "转场",
+    "强调"
+   ],
+   "entry": "fx/trans_pack.py:card_flip",
+   "baseline": "baselines/card_flip.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "transition",
+   "beats": [
+    "转场"
+   ],
+   "auto": {}
+  },
+  {
+   "id": "wipe_bar",
+   "title": "擦除",
+   "desc": "斜向色带扫过，露出后一段",
+   "intent": "转场,步骤",
+   "energy": "中",
+   "inputs": [
+    "视频",
+    "图"
+   ],
+   "pitfalls": [
+    "色带边缘要留出亮边，不然像硬切"
+   ],
+   "params": "a_img, b_img, tilt",
+   "tags": [
+    "转场",
+    "步骤"
+   ],
+   "entry": "fx/trans_pack.py:wipe_bar",
+   "baseline": "baselines/wipe_bar.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "transition",
+   "beats": [
+    "转场"
+   ],
+   "auto": {}
+  },
+  {
+   "id": "shake_cut",
+   "title": "抖动切",
+   "desc": "A 抖两下后硬切成 B",
+   "intent": "转场,转折",
+   "energy": "高",
+   "inputs": [
+    "视频",
+    "图"
+   ],
+   "pitfalls": [
+    "抖动用确定性 sin，别用 random"
+   ],
+   "params": "a_img, b_img, amp",
+   "tags": [
+    "转场",
+    "转折"
+   ],
+   "entry": "fx/trans_pack.py:shake_cut",
+   "baseline": "baselines/shake_cut.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "transition",
+   "beats": [
+    "转场"
+   ],
+   "auto": {}
+  },
+  {
+   "id": "zoom_through",
+   "title": "穿镜",
+   "desc": "A 放大虚化 → B 从虚到实回正",
+   "intent": "转场,例证",
+   "energy": "中",
+   "inputs": [
+    "视频",
+    "图"
+   ],
+   "pitfalls": [
+    "放大超过 1.5 倍会糊，1.3-1.4 最稳"
+   ],
+   "params": "a_img, b_img, scale",
+   "tags": [
+    "转场",
+    "例证"
+   ],
+   "entry": "fx/trans_pack.py:zoom_through",
+   "baseline": "baselines/zoom_through.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "transition",
+   "beats": [
+    "转场"
+   ],
+   "auto": {}
+  },
+  {
+   "id": "blinds",
+   "title": "百叶",
+   "desc": "竖条依次翻出后一段画面",
+   "intent": "转场,列举",
+   "energy": "中",
+   "inputs": [
+    "视频",
+    "图"
+   ],
+   "pitfalls": [
+    "条数 6-10 最像百叶，多了像马赛克"
+   ],
+   "params": "a_img, b_img, n",
+   "tags": [
+    "转场",
+    "列举"
+   ],
+   "entry": "fx/trans_pack.py:blinds",
+   "baseline": "baselines/blinds.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "transition",
+   "beats": [
+    "转场"
+   ],
+   "auto": {}
+  },
+  {
+   "id": "ink_spread",
+   "title": "墨点扩散",
+   "desc": "圆形遮罩从中心扩开露出 B",
+   "intent": "转场,强调",
+   "energy": "中",
+   "inputs": [
+    "视频",
+    "图"
+   ],
+   "pitfalls": [
+    "遮罩边缘加 3px 柔化，硬边会有锯齿"
+   ],
+   "params": "a_img, b_img, cx, cy",
+   "tags": [
+    "转场",
+    "强调"
+   ],
+   "entry": "fx/trans_pack.py:ink_spread",
+   "baseline": "baselines/ink_spread.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "transition",
+   "beats": [
+    "转场"
+   ],
+   "auto": {}
+  },
+  {
+   "id": "fade_dip",
+   "title": "暗场",
+   "desc": "A 压到近黑 → B 提亮回来",
+   "intent": "转场,转折",
+   "energy": "低",
+   "inputs": [
+    "视频",
+    "图"
+   ],
+   "pitfalls": [
+    "别压到纯黑，留 0.04 亮度更连贯"
+   ],
+   "params": "a_img, b_img, floor",
+   "tags": [
+    "转场",
+    "转折"
+   ],
+   "entry": "fx/trans_pack.py:fade_dip",
+   "baseline": "baselines/fade_dip.jpg",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T23:34:52+08:00",
+   "kind": "transition",
+   "beats": [
+    "转场"
+   ],
+   "auto": {}
   }
- ]
+ ],
+ "ready_count": 33
 }
