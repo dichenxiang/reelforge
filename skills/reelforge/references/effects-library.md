@@ -98,6 +98,8 @@ python scripts/effects.py check                    # 缺文件 / 缺基准帧
 | `shotcraft.json` | video-shotcraft | 124 | 代码 Apache-2.0 |
 | `vocab.json` | talkcraft 的节拍词表 | 26 类 | 同上 |
 
+**这三个文件随仓库分发**（`skills/reelforge/catalog/`）。读取顺序：`$REELFORGE_EFFECTS/catalog/` 优先，仓库自带兜底——所以换机器、换 agent，卡片库都还在。
+
 每张卡记：`id / title / intent（什么时候用）/ category / energy / beats（适配节拍）/ inputs / source / ref`。
 
 ```bash

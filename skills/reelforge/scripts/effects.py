@@ -259,18 +259,32 @@ BEAT_RULES = [
 
 
 def _catalog():
-    d = root() / "catalog"
+    """先读本地库，再读 skill 自带的 catalog（换机器也能用）。"""
     vocab, cards = {"beats": [], "inputs": {}}, []
-    if (d / "vocab.json").exists():
-        vocab = json.loads((d / "vocab.json").read_text(encoding="utf-8"))
-    for f in sorted(d.glob("*.json")) if d.exists() else []:
-        if f.name == "vocab.json":
-            continue
-        try:
-            data = json.loads(f.read_text(encoding="utf-8"))
-        except Exception:
-            continue
-        cards.extend(data.get("cards") or [])
+    seen = set()
+    dirs = []
+    local = root() / "catalog"
+    if local.exists():
+        dirs.append(local)
+    bundled = Path(__file__).resolve().parent.parent / "catalog"
+    if bundled.exists() and bundled.resolve() != local.resolve():
+        dirs.append(bundled)
+    for d in dirs:
+        if (d / "vocab.json").exists() and not vocab["beats"]:
+            vocab = json.loads((d / "vocab.json").read_text(encoding="utf-8"))
+        for f in sorted(d.glob("*.json")):
+            if f.name == "vocab.json":
+                continue
+            try:
+                data = json.loads(f.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            for c in (data.get("cards") or []):
+                key = (c.get("source"), c.get("id"))
+                if key in seen:
+                    continue
+                seen.add(key)
+                cards.append(c)
     return vocab, cards
 
 
