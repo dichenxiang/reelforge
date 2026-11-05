@@ -256,5 +256,7 @@ work/<slug>/
 | `references/gates.md` | 五道门：时机、产物、验收卡模板 |
 | `references/effects-library.md` | 效果库：契约、命令、入库与回归 |
 | `references/pitfalls.md` | 踩坑清单（硬规则，开工前必读） |
+| `references/word-align.md` | 字级时间戳（可选增强）规格与接入点 |
+| `references/benchmark-motion-libs.md` | 三个动效库评估：能借什么、许可红线 |
 | `references/analysis.md` | 拆解口径 |
 | `DEPLOY.md` / `AGENT_DEPLOY.md` | 换 agent、换模型的部署方法 |

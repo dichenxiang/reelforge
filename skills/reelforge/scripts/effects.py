@@ -83,6 +83,26 @@ def ensure() -> None:
         (root() / sub).mkdir(parents=True, exist_ok=True)
 
 
+def _card(eid: str, a) -> dict:
+    """配方卡：id / 意图 / 能量 / 输入 / 参数 / 已知坑 / 入口 / 基准帧。"""
+    return {
+        "id": eid,
+        "title": getattr(a, "title", "") or eid,
+        "desc": getattr(a, "desc", "") or "",
+        "intent": getattr(a, "intent", "") or "",
+        "energy": getattr(a, "energy", "") or "中",
+        "inputs": [t.strip() for t in (getattr(a, "inputs", "") or "").split(",") if t.strip()],
+        "pitfalls": [t.strip() for t in (getattr(a, "pitfalls", "") or "").split("|") if t.strip()],
+        "params": getattr(a, "params", "") or "",
+        "tags": [t.strip() for t in (getattr(a, "tags", "") or "").split(",") if t.strip()],
+        "entry": f"fx/{eid}.py",
+        "baseline": None,
+        "preview": None,
+        "used_in": [],
+        "updated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+    }
+
+
 def cmd_init(_a) -> int:
     ensure()
     idx = load()
@@ -107,16 +127,7 @@ def cmd_new(a) -> int:
         return 1
     f = root() / "fx" / f"{a.id}.py"
     f.write_text(TEMPLATE.format(title=a.title or a.id, eid=a.id), encoding="utf-8")
-    idx["items"].append({
-        "id": a.id,
-        "title": a.title or a.id,
-        "desc": a.desc or "",
-        "tags": [t.strip() for t in (a.tags or "").split(",") if t.strip()],
-        "entry": f"fx/{a.id}.py",
-        "baseline": None,
-        "used_in": [],
-        "updated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-    })
+    idx["items"].append(_card(a.id, a))
     save(idx)
     print(f"已创建 {f}")
     print("  下一步：写好 render()，然后 `python effects.py baseline {}`".format(a.id))
@@ -134,16 +145,7 @@ def cmd_register(a) -> int:
     idx["items"] = [x for x in idx["items"] if x["id"] != eid]
     dst = root() / "fx" / f"{eid}.py"
     shutil.copy2(src, dst)
-    idx["items"].append({
-        "id": eid,
-        "title": a.title or eid,
-        "desc": a.desc or "",
-        "tags": [t.strip() for t in (a.tags or "").split(",") if t.strip()],
-        "entry": f"fx/{eid}.py",
-        "baseline": None,
-        "used_in": [],
-        "updated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-    })
+    idx["items"].append(_card(eid, a))
     save(idx)
     print(f"已登记 {eid} → {dst}")
     return 0
@@ -161,6 +163,29 @@ def cmd_list(a) -> int:
         state = "待抽取" if x.get("status") == "pending" else (x.get("baseline") or "无基准帧")
         print(f"{x['id']:18s} {x['title']:24s} {','.join(x.get('tags', [])) or '-':22s} {state}")
     print(f"\n共 {len(items)} 个 · 库位置 {root().resolve()}")
+    return 0
+
+
+def cmd_card(a) -> int:
+    idx = load()
+    hit = next((x for x in idx["items"] if x["id"] == a.id), None)
+    if not hit:
+        print(f"未登记：{a.id}", file=sys.stderr)
+        return 1
+    print(f"## {hit['id']} — {hit.get('title','')}")
+    if hit.get("intent"):
+        print(f"何时用：{hit['intent']}")
+    print(f"能量：{hit.get('energy','-')}   输入：{','.join(hit.get('inputs') or []) or '-'}")
+    if hit.get("desc"):
+        print(f"说明：{hit['desc']}")
+    if hit.get("params"):
+        print(f"参数：{hit['params']}")
+    for pf in (hit.get("pitfalls") or []):
+        print(f"  坑：{pf}")
+    if hit.get("entry"):
+        print(f"入口：{hit['entry']}")
+    if hit.get("baseline"):
+        print(f"基准帧：{hit['baseline']}")
     return 0
 
 
@@ -228,6 +253,11 @@ def main() -> int:
     p.add_argument("--title", default="")
     p.add_argument("--desc", default="")
     p.add_argument("--tags", default="")
+    p.add_argument("--intent", default="")
+    p.add_argument("--energy", default="中")
+    p.add_argument("--inputs", default="")
+    p.add_argument("--pitfalls", default="", help="多条用 | 分隔")
+    p.add_argument("--params", default="")
     p.set_defaults(fn=cmd_new)
 
     p = sub.add_parser("register")
@@ -236,6 +266,11 @@ def main() -> int:
     p.add_argument("--title", default="")
     p.add_argument("--desc", default="")
     p.add_argument("--tags", default="")
+    p.add_argument("--intent", default="")
+    p.add_argument("--energy", default="中")
+    p.add_argument("--inputs", default="")
+    p.add_argument("--pitfalls", default="", help="多条用 | 分隔")
+    p.add_argument("--params", default="")
     p.set_defaults(fn=cmd_register)
 
     p = sub.add_parser("list")
@@ -248,6 +283,10 @@ def main() -> int:
     p.add_argument("--total", type=float, default=4.0)
     p.add_argument("--params", default="")
     p.set_defaults(fn=cmd_baseline)
+
+    p = sub.add_parser("card")
+    p.add_argument("id")
+    p.set_defaults(fn=cmd_card)
 
     p = sub.add_parser("path")
     p.add_argument("id")
