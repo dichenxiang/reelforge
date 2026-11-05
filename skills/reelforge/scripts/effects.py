@@ -67,9 +67,13 @@ def index_path() -> Path:
 
 
 def load() -> dict:
-    if not index_path().exists():
+    """本地 index 优先；没有就用随 skill 分发的种子（换机器也能直接用）。"""
+    p = index_path()
+    if not p.exists():
+        p = Path(__file__).resolve().parent.parent / "effects" / "index.json"
+    if not p.exists():
         return {"version": 1, "updated_at": None, "root": str(root().resolve()), "items": []}
-    return json.loads(index_path().read_text(encoding="utf-8"))
+    return json.loads(p.read_text(encoding="utf-8"))
 
 
 def save(idx: dict) -> None:
@@ -227,13 +231,22 @@ def cmd_baseline(a) -> int:
     if not hit:
         print(f"未登记：{a.id}", file=sys.stderr)
         return 1
-    f = root() / hit["entry"]
+    entry = hit["entry"]
+    path_part, _, fn_name = entry.partition(":")
+    f = root() / path_part
+    if not f.exists():
+        f = Path(__file__).resolve().parent.parent / "effects" / path_part
+    import sys as _sys
+    for extra in (str(f.parent), str(f.parent.parent), str(root()), str(root() / "fx")):
+        if extra not in _sys.path:
+            _sys.path.insert(0, extra)
     spec = importlib.util.spec_from_file_location(f"fx_{a.id}", f)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
+    render_fn = getattr(mod, fn_name or "render")
     total = a.total
     extra = json.loads(a.params) if a.params else {}
-    img = mod.render(a.at if a.at is not None else total * 0.6, total, extra)
+    img = render_fn(a.at if a.at is not None else total * 0.6, total, extra)
     out = root() / "baselines" / f"{a.id}.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     img.convert("RGB").save(out)
