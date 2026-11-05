@@ -240,6 +240,165 @@ def cmd_baseline(a) -> int:
     return 0
 
 
+# ---------------------------------------------------------------- 卡片目录与匹配
+
+BEAT_RULES = [
+    ("设问", ["？", "?", "为什么", "怎么", "是不是", "难道", "凭什么"]),
+    ("数据", ["%", "百分之", "倍", "万", "亿", "千人", "增长", "下降", "一半", "三成"]),
+    ("对比", ["但是", "而是", "相反", "不如", "反而", "对比", "相比", " vs "]),
+    ("步骤", ["第一步", "第二步", "首先", "然后", "接着", "最后再", "先", "再"]),
+    ("列举", ["第一", "第二", "第三", "其次", "还有", "另外", "以及", "、"]),
+    ("转折", ["但", "然而", "其实", "不过", "问题是", "可是"]),
+    ("定义", ["所谓", "指的是", "意思是", "就是说"]),
+    ("例证", ["比如", "例如", "举个例子", "像是", "就像", "拿"]),
+    ("机制", ["因为", "所以", "导致", "就会", "才能", "是因为", "原理"]),
+    ("过程演示", ["打开", "点击", "输入", "发送", "回到", "进入", "装好"]),
+    ("强调", ["注意", "重点", "关键", "一定要", "记住", "核心"]),
+    ("号召", ["关注", "点赞", "订阅", "评论区", "主页", "转发", "收藏"]),
+]
+
+
+def _catalog():
+    d = root() / "catalog"
+    vocab, cards = {"beats": [], "inputs": {}}, []
+    if (d / "vocab.json").exists():
+        vocab = json.loads((d / "vocab.json").read_text(encoding="utf-8"))
+    for f in sorted(d.glob("*.json")) if d.exists() else []:
+        if f.name == "vocab.json":
+            continue
+        try:
+            data = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        cards.extend(data.get("cards") or [])
+    return vocab, cards
+
+
+def _split_beats(text: str):
+    import re
+    raw = [x.strip() for x in re.split(r"(?<=[。！？!?])", text) if x.strip()]
+    merged = []
+    for seg in raw:
+        if merged and len(seg) <= 6:          # 「机位？」这类碎片并回上一拍
+            merged[-1] += seg
+        else:
+            merged.append(seg)
+    raw = merged
+    out = []
+    for i, s in enumerate(raw):
+        hits = []
+        for name, kws in BEAT_RULES:
+            got = [k for k in kws if k in s]
+            if got:
+                hits.append(name)
+        if (s.count("这样") >= 2 or s.count("、") >= 2) and "列举" not in hits:
+            hits.append("列举")
+        if not hits:
+            hits = ["论点"]
+        if i == 0:
+            hits = ["钩子"] + [h for h in hits if h != "钩子"]
+        if len(s) <= 12 and "论点" in hits:
+            hits.append("金句")
+        seen, uniq = set(), []
+        for h in hits:
+            if h not in seen:
+                seen.add(h)
+                uniq.append(h)
+        out.append({"i": i + 1, "text": s, "beat": uniq[0], "beats": uniq})
+    return out
+
+
+def _kws(text: str) -> set:
+    import re
+    grams = set()
+    for run in re.findall(r"[\u4e00-\u9fa5]{2,}|[A-Za-z]{3,}", text or ""):
+        if run.isascii():
+            grams.add(run.lower())
+            continue
+        for i in range(len(run) - 1):
+            grams.add(run[i:i + 2])
+    return grams
+
+
+def _score(card, beat, have_inputs, energy, beat_kw=None, beat_list=None):
+    sc = 0.0
+    cb = set(card.get("beats") or [])
+    if beat_list and cb & set(beat_list):
+        sc += 3
+    if beat_kw:
+        ck = _kws(f"{card.get('title','')} {card.get('intent','')} {' '.join(card.get('beats') or [])}")
+        inter = len(beat_kw & ck)
+        sc += 2.5 * min(1.0, inter / 6.0)
+    ci = set(card.get("inputs") or []) - {"场"}
+    if ci:
+        inter = len(ci & have_inputs)
+        sc += 2.0 * inter / len(ci)
+    if energy and card.get("energy") == energy:
+        sc += 1
+    if (card.get("priority") or "P2") in ("P0", "P1"):
+        sc += 0.5
+    return sc
+
+
+def cmd_catalog(a) -> int:
+    _v, cards = _catalog()
+    rows = cards
+    if a.source:
+        rows = [c for c in rows if c.get("source") == a.source]
+    if a.category:
+        rows = [c for c in rows if c.get("category") == a.category]
+    if a.beat:
+        rows = [c for c in rows if a.beat in (c.get("beats") or [])]
+    if a.grep:
+        kw = a.grep.lower()
+        rows = [c for c in rows if kw in (c.get("title", "") + c.get("intent", "")).lower()]
+    for c in rows[: a.limit]:
+        beats = "/".join(c.get("beats") or []) or "-"
+        print(f"{c['source']:10s} {c['id'][:28]:28s} {c['title'][:14]:14s} {c.get('category','')[:8]:8s} {c.get('energy',''):1s} {beats}")
+    print(f"\n共 {len(rows)} 条（全部 {len(cards)}）")
+    return 0
+
+
+def cmd_beats(a) -> int:
+    text = Path(a.script).read_text(encoding="utf-8")
+    beats = _split_beats(text)
+    for b in beats:
+        print(f"{b['i']:2d}  {b['beat']:3s}  {b['text'][:42]}")
+    from collections import Counter
+    print("\n节拍分布:", dict(Counter(b["beat"] for b in beats)))
+    return 0
+
+
+def cmd_suggest(a) -> int:
+    text = Path(a.script).read_text(encoding="utf-8")
+    have = {t.strip() for t in (a.inputs or "").split(",") if t.strip()} | {"文"}
+    _vocab, cards = _catalog()
+    if not cards:
+        print("卡片目录为空：先把索引放到 ~/.reelforge/effects/catalog/", file=sys.stderr)
+        return 1
+    used, used_cat = set(), {}
+    for b in _split_beats(text):
+        bkw = _kws(b["text"])
+        bl = b.get("beats") or [b["beat"]]
+        ranked = sorted(cards, key=lambda c: -_score(c, b["beat"], have, a.energy, bkw, bl))
+        cand = [c for c in ranked if _score(c, b["beat"], have, a.energy, bkw, bl) >= 2.6]
+        cand = [c for c in cand if c["id"] not in used
+                and used_cat.get(c["category"], 0) < 2]
+        picks = cand[: a.top]
+        if not picks:
+            print(f"\n[{b['i']:02d}] {'+'.join(bl)}｜{b['text'][:30]}")
+            print("     （无高置信匹配 → 用基础字幕/素材呈现，别硬套卡）")
+            continue
+        print(f"\n[{b['i']:02d}] {'+'.join(bl)}｜{b['text'][:30]}")
+        for k, c in enumerate(picks):
+            star = "★" if k == 0 else " "
+            print(f"  {star} {c['category']}·{c['title']}（{'/'.join(c.get('beats') or []) or '通用'}｜能量{c.get('energy')}）")
+            print(f"     {c['intent'][:70]}")
+        used.add(picks[0]["id"])
+        used_cat[picks[0]["category"]] = used_cat.get(picks[0]["category"], 0) + 1
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="ReelForge 效果库")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -283,6 +442,25 @@ def main() -> int:
     p.add_argument("--total", type=float, default=4.0)
     p.add_argument("--params", default="")
     p.set_defaults(fn=cmd_baseline)
+
+    p = sub.add_parser("catalog")
+    p.add_argument("--source", default="")
+    p.add_argument("--category", default="")
+    p.add_argument("--beat", default="")
+    p.add_argument("--grep", default="")
+    p.add_argument("--limit", type=int, default=40)
+    p.set_defaults(fn=cmd_catalog)
+
+    p = sub.add_parser("beats")
+    p.add_argument("--script", required=True)
+    p.set_defaults(fn=cmd_beats)
+
+    p = sub.add_parser("suggest")
+    p.add_argument("--script", required=True)
+    p.add_argument("--inputs", default="", help="可用的素材类型：图,截图,V,人")
+    p.add_argument("--energy", default="")
+    p.add_argument("--top", type=int, default=3)
+    p.set_defaults(fn=cmd_suggest)
 
     p = sub.add_parser("card")
     p.add_argument("id")

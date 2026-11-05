@@ -88,6 +88,38 @@ python scripts/effects.py check                    # 缺文件 / 缺基准帧
 2. 和旧图做像素差（或 `scripts/similarity.py` 的图片模式）
 3. 差异超阈值就说明改了版式，要在 `index.json` 里升 `version` 并注明原因
 
+## 卡片目录（catalog）—— 选型靠它，不靠我临场想
+
+`~/.reelforge/effects/catalog/` 放外部成熟动效库的**索引**（不是代码）：
+
+| 文件 | 来源 | 条数 | 许可 |
+|---|---|---|---|
+| `talkcraft.json` | video-talkcraft | 108 | PolyForm 非商业（自用无碍） |
+| `shotcraft.json` | video-shotcraft | 124 | 代码 Apache-2.0 |
+| `vocab.json` | talkcraft 的节拍词表 | 26 类 | 同上 |
+
+每张卡记：`id / title / intent（什么时候用）/ category / energy / beats（适配节拍）/ inputs / source / ref`。
+
+```bash
+python scripts/effects.py catalog --limit 40          # 全览
+python scripts/effects.py catalog --beat 强调          # 按节拍筛
+python scripts/effects.py catalog --source talkcraft --category 转场结构
+python scripts/effects.py catalog --grep 放大镜
+```
+
+## 按稿子匹配（suggest）
+
+```bash
+python scripts/effects.py beats   --script script.md
+python scripts/effects.py suggest --script script.md --inputs 图,截图 --top 3
+```
+
+- `beats`：把稿子切成语义拍，逐句打标（钩子/设问/论点/例证/数据/对比/列举/步骤/转折/机制/过程演示/强调/号召/金句…），支持一句多标
+- `suggest`：按「节拍匹配 ×3 + 关键词重合 ×2.5 + 素材可用 ×2 + 能量 ×1 + 优先级 ×0.5」打分，每拍给前 N 个候选
+- **低置信度会明确写「无高置信匹配」**，不许硬套一张不相关的卡
+
+这一层解决的是「每次都要人描述动效」：先由稿子定节拍，再由节拍选卡，人只做否决。
+
 ## 与流水线的关系
 
 镜头表里直接引用，不写实现：
