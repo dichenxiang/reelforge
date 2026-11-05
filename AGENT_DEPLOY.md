@@ -40,6 +40,16 @@ python --version; node -v; npm -v; jq --version; ffmpeg -version | head -1; git 
 | `~/.codex/skills` | Codex CLI | 全部 |
 | `~/.workbuddy/skills` | WorkBuddy | 全部 |
 | `~/.gemini/antigravity/skills` | Antigravity | 全部（与其他 agent 相同） |
+| `~/.gemini/skills` | Gemini CLI | 全部（`--gemini`） |
+
+> ⚠️ **Antigravity ≠ Gemini CLI，也 ≠ Claude**：三个目录互不相同，漏同步任何一个，那个 agent 拿到的就是旧版（没有 `fx_pipeline.py` 和 33 个动效）。统一路由见 `AGENT_ROUTING.md`。
+>
+> 装完 / 改完必跑校验，别凭"我复制过了"下结论：
+> ```bash
+> python tests/verify_agents.py            # 六个目录文件一致性
+> python tests/verify_agents.py --smoke    # 额外逐个独立渲一个 mp4
+> ```
+> 校验会在**空本地效果库 + 独立 cwd** 下运行，证明每个 agent 都不依赖别的 agent、也不依赖 `~/.reelforge`。
 
 一个都没有 → 问用户用哪个；仍没有 → 按 §3 的“无 skills 机制”降级（写进 `AGENTS.md`）。
 

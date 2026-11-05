@@ -23,9 +23,11 @@ description: 按 web-video-presentation 流程把稿子做成 16:9 视频的执�
 | agent | `<RF>` |
 |---|---|
 | WorkBuddy | `~/.workbuddy/skills/reelforge` |
-| Codex | `~/.codex/skills/reelforge` |
-| Claude / Antigravity | `~/.claude/skills/reelforge` |
-| Gemini | `~/.gemini/skills/reelforge` |
+| Codex CLI | `~/.codex/skills/reelforge` |
+| Claude Code | `~/.claude/skills/reelforge` |
+| Gemini CLI | `~/.gemini/skills/reelforge` |
+| Antigravity | `~/.gemini/antigravity/skills/reelforge` |
+| DeepSeek Harness | `~/.dsh/skills/reelforge` |
 
 统一效果库本体在 `~/.reelforge/effects`（`REELFORGE_EFFECTS` 可覆盖）；索引是「本地 + 随仓库合并、仓库优先」，本机库为空也能靠随仓库分发的 33 个效果直接出片。
 

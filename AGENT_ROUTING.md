@@ -14,17 +14,22 @@
 **本机效果库为空也能出片**：`runtime.resolve_entry()` 会回退到随 skill 分发的 `effects/fx/*.py`。
 所以「换 agent 找不到库」不是拒绝理由，先跑第 3 节的 `check`。
 
-## 2. 四个技能目录（内容完全相同，选当前 agent 那个）
+## 2. 六个技能目录（内容完全相同，选当前 agent 那个）
 
 | agent | 总控技能目录 `<RF>` |
 |---|---|
 | WorkBuddy | `~/.workbuddy/skills/reelforge` |
-| Codex | `~/.codex/skills/reelforge` |
-| Claude / Antigravity | `~/.claude/skills/reelforge` |
-| Gemini | `~/.gemini/skills/reelforge` |
+| Codex CLI | `~/.codex/skills/reelforge` |
+| Claude Code | `~/.claude/skills/reelforge` |
+| Gemini CLI | `~/.gemini/skills/reelforge` |
+| **Antigravity** | **`~/.gemini/antigravity/skills/reelforge`** |
+| **DeepSeek Harness** | **`~/.dsh/skills/reelforge`** |
+
+> ⚠️ Antigravity **不是** `~/.claude/skills`，也不等于 Gemini CLI 的 `~/.gemini/skills`；它有自己的 `~/.gemini/antigravity/skills`。DSH 同理。这两个最容易漏同步，验的时候必须单独查。
 
 五个技能一起分发：`reelforge`（总控 / 效果库所在）、`reelforge-writer`、`reelforge-runner`、`reelforge-duo`、`reelforge-router`。
 **注意：`effects.py` / `fx_pipeline.py` / `effects/` 只在总控 `reelforge` 目录里**，runner / writer / duo 目录没有，别在那里找。
+同步后用 `bash install.sh --all` 可一次覆盖六个目标（先备份再覆盖式更新，不删目录）；只改文档时可只同步各目录的 `SKILL.md`。
 
 ## 3. 四条命令（一律用绝对路径）
 
@@ -53,5 +58,14 @@ python "$RF/scripts/effects.py" list                                 # 列效果
 - 新动效必须 `register` + `baseline` + 写 `auto` 配方，否则自动匹配选不中。
 - `plan` 按语义节拍匹配，数据句没有数字不上图表，低置信退回基础文字动效。
 - 完整契约见 `<RF>/references/effects-library.md`。
+
+## 6. 一键校验（别凭"我复制过了"下结论）
+
+```bash
+python tests/verify_agents.py            # 六个目录关键文件哈希一致性
+python tests/verify_agents.py --smoke    # 额外逐个在空本地库 + 独立 cwd 下渲一个 mp4
+```
+
+任一目录缺失 / 版本不一致 / 冒烟失败，退出码非 0。这个校验就是「换 agent 不丢库」的回归测试，改完效果库或同步完必须跑。
 
 GitHub：`https://github.com/dichenxiang/reelforge`（`skills/` 为分发源）。

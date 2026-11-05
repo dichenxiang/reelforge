@@ -28,7 +28,8 @@ usage() {
   --dsh           ~/.dsh/skills              （完整一套）
   --claude        ~/.claude/skills           （完整一套）
   --codex         ~/.codex/skills            （完整一套）
-  --all           以上全部
+  --gemini        ~/.gemini/skills           （Gemini CLI，完整一套）
+  --all           以上全部（六个目标）
 
 其它：
   --with-wvp      稀疏克隆 web-video-presentation 到 skills/reelforge/vendor
@@ -40,8 +41,8 @@ EOF
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --workbuddy|--antigravity|--dsh|--claude|--codex) TARGETS+=("${1#--}") ;;
-    --all) TARGETS=(workbuddy antigravity dsh claude codex) ;;
+    --workbuddy|--antigravity|--dsh|--claude|--codex|--gemini) TARGETS+=("${1#--}") ;;
+    --all) TARGETS=(workbuddy antigravity dsh claude codex gemini) ;;
     --with-wvp) WITH_WVP=1 ;;
     --with-humanizer) WITH_HUMANIZER=1 ;;
     --check) CHECK_ONLY=1 ;;
@@ -108,6 +109,7 @@ install_for() {
     dsh)         root="$UHOME/.dsh/skills" ;;
     claude)      root="$UHOME/.claude/skills" ;;
     codex)       root="$UHOME/.codex/skills" ;;
+    gemini)      root="$UHOME/.gemini/skills" ;;
     *) echo "未知目标：$t"; return 1 ;;
   esac
   echo "→ $t ($root)"
