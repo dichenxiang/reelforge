@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updated_at": "2026-11-05T21:51:13+08:00",
+ "updated_at": "2026-11-05T22:44:01+08:00",
  "items": [
   {
    "id": "frame_zoom",
@@ -411,7 +411,178 @@
    "status": "ready",
    "used_in": [],
    "updated_at": "2026-11-05T22:00:00+08:00"
+  },
+  {
+   "id": "callout_line",
+   "title": "标注引出线",
+   "desc": "强调：圆点起涟漪，折线引出文字标签",
+   "intent": "强调,例证",
+   "energy": "中",
+   "inputs": [
+    "图",
+    "截图"
+   ],
+   "pitfalls": [
+    "折线拐点要留 60px，太短像乱线；标签别压住目标"
+   ],
+   "params": "target[x,y,w,h], image?",
+   "tags": [
+    "强调",
+    "例证"
+   ],
+   "entry": "fx/annot_pack.py:callout_line",
+   "baseline": "baselines/callout_line.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:50:00+08:00"
+  },
+  {
+   "id": "circle_mark",
+   "title": "手绘圆圈",
+   "desc": "强调：像手画的一圈圈住重点",
+   "intent": "强调",
+   "energy": "中",
+   "inputs": [
+    "图",
+    "截图"
+   ],
+   "pitfalls": [
+    "圈要留 26px 余量，贴边会切到字"
+   ],
+   "params": "target[x,y,w,h], image?",
+   "tags": [
+    "强调"
+   ],
+   "entry": "fx/annot_pack.py:circle_mark",
+   "baseline": "baselines/circle_mark.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:50:00+08:00"
+  },
+  {
+   "id": "spotlight_dim",
+   "title": "聚光压暗",
+   "desc": "强调：全画面压暗，只留目标区亮",
+   "intent": "强调,对比",
+   "energy": "中",
+   "inputs": [
+    "图",
+    "截图"
+   ],
+   "pitfalls": [
+    "压暗超过 0.8 会看不出背景，0.6-0.7 最稳"
+   ],
+   "params": "target[x,y,w,h], image?",
+   "tags": [
+    "强调",
+    "对比"
+   ],
+   "entry": "fx/annot_pack.py:spotlight_dim",
+   "baseline": "baselines/spotlight_dim.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:50:00+08:00"
+  },
+  {
+   "id": "arrow_focus",
+   "title": "箭头指向",
+   "desc": "强调：箭头从画面外侧指进目标",
+   "intent": "强调,步骤",
+   "energy": "高",
+   "inputs": [
+    "图",
+    "截图"
+   ],
+   "pitfalls": [
+    "箭头长度别超过 220px，否则抢焦点"
+   ],
+   "params": "target[x,y,w,h], image?",
+   "tags": [
+    "强调",
+    "步骤"
+   ],
+   "entry": "fx/annot_pack.py:arrow_focus",
+   "baseline": "baselines/arrow_focus.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:50:00+08:00"
+  },
+  {
+   "id": "corner_brackets",
+   "title": "四角标框",
+   "desc": "强调：四个角标从外向内合拢",
+   "intent": "强调,标题",
+   "energy": "中",
+   "inputs": [
+    "图",
+    "截图"
+   ],
+   "pitfalls": [
+    "角标长度固定 56px 最像取景框，长了变装饰"
+   ],
+   "params": "target[x,y,w,h], image?",
+   "tags": [
+    "强调",
+    "标题"
+   ],
+   "entry": "fx/annot_pack.py:corner_brackets",
+   "baseline": "baselines/corner_brackets.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:50:00+08:00"
+  },
+  {
+   "id": "index_badge",
+   "title": "序号徽章",
+   "desc": "列举/步骤：编号圆章弹入",
+   "intent": "列举,步骤",
+   "energy": "高",
+   "inputs": [
+    "文"
+   ],
+   "pitfalls": [
+    "编号要跟口播的顺序一致，跳号很致命"
+   ],
+   "params": "target[x,y,w,h], image?",
+   "tags": [
+    "列举",
+    "步骤"
+   ],
+   "entry": "fx/annot_pack.py:index_badge",
+   "baseline": "baselines/index_badge.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:50:00+08:00"
+  },
+  {
+   "id": "underline_sweep",
+   "title": "下划线扫过",
+   "desc": "强调/金句：一道线从左扫到底",
+   "intent": "强调,金句",
+   "energy": "中",
+   "inputs": [
+    "文"
+   ],
+   "pitfalls": [
+    "线要在字基线下方 8-12px，高了压字"
+   ],
+   "params": "target[x,y,w,h], image?",
+   "tags": [
+    "强调",
+    "金句"
+   ],
+   "entry": "fx/annot_pack.py:underline_sweep",
+   "baseline": "baselines/underline_sweep.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:50:00+08:00"
   }
- ],
- "note": "随仓库分发的效果库种子；本地库 ~/.reelforge/effects 优先"
+ ]
 }

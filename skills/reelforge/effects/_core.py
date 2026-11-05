@@ -13,6 +13,12 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 W, H = 1920, 1080
 
+INK = (26, 22, 16)
+MUTE = (120, 112, 96)
+AMBER = (163, 74, 42)
+DOT = (176, 48, 40)
+PALE = (250, 246, 235)
+
 # 常见中文字体，按优先级尝试；找不到就用 PIL 默认
 FONT_CANDIDATES = [
     ("C:/Windows/Fonts/SourceHanSerifSC-Bold.otf", 0),
