@@ -195,7 +195,10 @@ def cmd_path(a) -> int:
     if not hit:
         print(f"未登记：{a.id}", file=sys.stderr)
         return 1
-    print(str((root() / hit["entry"]).resolve()))
+    p = root() / (hit["entry"].partition(":")[0])
+    if not p.exists():
+        p = Path(__file__).resolve().parent.parent / "effects" / hit["entry"].partition(":")[0]
+    print(str(p.resolve()))
     return 0
 
 

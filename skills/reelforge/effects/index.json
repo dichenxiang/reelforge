@@ -1,0 +1,417 @@
+{
+ "version": 1,
+ "updated_at": "2026-11-05T21:51:13+08:00",
+ "items": [
+  {
+   "id": "frame_zoom",
+   "title": "屏幕边框 + 原位高亮 + 悬浮放大条",
+   "desc": "把截图放进边框，圈出指定区域，用长条放大镜放大，全程缓动",
+   "tags": [
+    "zoom",
+    "screen",
+    "magnifier"
+   ],
+   "entry": "fx/frame_zoom.py",
+   "baseline": "baselines/frame_zoom.png",
+   "used_in": [],
+   "updated_at": "2026-11-04T22:08:44+08:00",
+   "intent": "要强调截图里的某一行/某个按钮，又不想把画面拉满屏",
+   "energy": "中",
+   "inputs": [
+    "image"
+   ],
+   "params": "image, focus[x,y,w,h], screen[x0,y0,x1,y1], bar_w, bg/ink/accent",
+   "pitfalls": [
+    "视频轨的编辑列表 media_time 若不为 0，播放器会反复重置",
+    "放大条贴边会被裁，要自动翻到下方",
+    "气泡压在原文上会看不到它指的位置，必须加连接线"
+   ],
+   "preview": null
+  },
+  {
+   "id": "papers",
+   "title": "缩略图缩成一行 + 稿纸铺满",
+   "desc": "缩略图从大屏缩成顶行，下方铺开多层写满字的稿纸",
+   "tags": [
+    "layout",
+    "paper"
+   ],
+   "entry": null,
+   "baseline": null,
+   "status": "pending",
+   "ref": "WorkBuddy/2026-11-03-23-30-15/muse-skill-video/vid.py",
+   "used_in": [
+    "muse-skill-video"
+   ],
+   "intent": "表达「信息量很大 / 提示词很长」，需要一堆写满字的稿纸",
+   "energy": "低",
+   "inputs": [
+    "image",
+    "thumb"
+   ],
+   "params": "spots[(x,y,angle)], sheet_size, lines",
+   "pitfalls": [
+    "稿纸半透明会让层与层糊在一起，填充要接近不透明",
+    "缩略图必须和上一镜的最后一帧一致，否则像换片"
+   ],
+   "preview": null
+  },
+  {
+   "id": "screen_stack",
+   "title": "多素材大屏叠加",
+   "desc": "三块素材依次压上，每块带出场时间偏移",
+   "tags": [
+    "hook",
+    "stack"
+   ],
+   "entry": null,
+   "baseline": null,
+   "status": "pending",
+   "ref": "WorkBuddy/2026-11-03-23-30-15/muse-skill-video/vid.py",
+   "used_in": [
+    "muse-skill-video"
+   ],
+   "intent": "开场三连「这样、这样、还有这样」，多素材依次压上",
+   "energy": "高",
+   "inputs": [
+    "video"
+   ],
+   "params": "panels[(x,y)], appear[], ss[]",
+   "pitfalls": [
+    "enable 只控显隐、不改时间基准，素材必须加 setpts 偏移",
+    "任何一路输入被裁短，shortest 会截断整条链"
+   ],
+   "preview": null
+  },
+  {
+   "id": "mascot",
+   "title": "吉祥物疑问气泡",
+   "desc": "吉祥物 + 头顶问号 + 一圈小气泡 + 三个大气泡",
+   "tags": [
+    "mascot",
+    "bubble"
+   ],
+   "entry": null,
+   "baseline": null,
+   "status": "pending",
+   "ref": "WorkBuddy/2026-11-03-23-30-15/muse-skill-video/vid.py",
+   "used_in": [
+    "muse-skill-video"
+   ],
+   "intent": "用吉祥物演「困惑/不知道」，适合解释 AI 为什么会猜错",
+   "energy": "中",
+   "inputs": [
+    "image"
+   ],
+   "params": "mascot_path, bubbles[], beats[]",
+   "pitfalls": [
+    "生成图常带假棋盘格底，要做连通域抠图",
+    "气泡要按句子的真实起点弹，不能按比例"
+   ],
+   "preview": null
+  },
+  {
+   "id": "input_box",
+   "title": "输入框打字发送",
+   "desc": "居中输入框逐字打，按发送后气泡飞向 AI 卡片",
+   "tags": [
+    "input",
+    "send"
+   ],
+   "entry": null,
+   "baseline": null,
+   "status": "pending",
+   "ref": "WorkBuddy/2026-11-03-23-30-15/muse-skill-video/vid.py",
+   "used_in": [
+    "muse-skill-video"
+   ],
+   "intent": "演示「用户只输入了一句话」这个动作",
+   "energy": "中",
+   "inputs": [
+    "text"
+   ],
+   "params": "placeholder, text, send_at",
+   "pitfalls": [
+    "飞行气泡缩小后文字会糊成一团，只留三个点更干净"
+   ],
+   "preview": null
+  },
+  {
+   "id": "codex_window",
+   "title": "终端窗口",
+   "desc": "暗色终端窗口：输入、安装、改稿三种状态",
+   "tags": [
+    "codex",
+    "terminal"
+   ],
+   "entry": null,
+   "baseline": null,
+   "status": "pending",
+   "ref": "WorkBuddy/2026-11-03-23-30-15/muse-skill-video/vid.py",
+   "used_in": [
+    "muse-skill-video"
+   ],
+   "intent": "展示在 Codex / agent 里装 skill、改稿的过程",
+   "energy": "低",
+   "inputs": [
+    "text"
+   ],
+   "params": "title, lines[], state",
+   "pitfalls": [
+    "暗色窗口在纸质背景上对比过强，要做圆角+投影才不突兀"
+   ],
+   "preview": null
+  },
+  {
+   "id": "firstframe",
+   "title": "首帧生成进度",
+   "desc": "首帧图进 Muse，进度条跑到完成，盖印章",
+   "tags": [
+    "firstframe",
+    "progress"
+   ],
+   "entry": null,
+   "baseline": null,
+   "status": "pending",
+   "ref": "WorkBuddy/2026-11-03-23-30-15/muse-skill-video/vid.py",
+   "used_in": [
+    "muse-skill-video"
+   ],
+   "intent": "解释首帧的作用：先进图片、再进视频",
+   "energy": "中",
+   "inputs": [
+    "image"
+   ],
+   "params": "frame_path, progress",
+   "pitfalls": [
+    "进度条要卡在口播说到「首帧」之后，不能提前跑完"
+   ],
+   "preview": null
+  },
+  {
+   "id": "cta_masthead",
+   "title": "报头式结尾卡",
+   "desc": "报纸报头版式：刊名、副题、分隔线、结尾语",
+   "tags": [
+    "cta",
+    "outro"
+   ],
+   "entry": null,
+   "baseline": null,
+   "status": "pending",
+   "ref": "WorkBuddy/2026-11-03-23-30-15/muse-skill-video/vid.py",
+   "used_in": [
+    "muse-skill-video"
+   ],
+   "intent": "结尾卡：报头版式 + 关注引导",
+   "energy": "低",
+   "inputs": [
+    "text"
+   ],
+   "params": "masthead, tagline, lines[]",
+   "pitfalls": [
+    "画面文案和口播重复会出现「读两遍」，只留差异信息"
+   ],
+   "preview": null
+  },
+  {
+   "id": "subtitle_band",
+   "title": "逐句字幕条",
+   "desc": "底部字幕带 + 关键词高亮，时间码来自句子级时间轴",
+   "tags": [
+    "subtitle",
+    "core"
+   ],
+   "entry": null,
+   "baseline": null,
+   "status": "pending",
+   "ref": "WorkBuddy/2026-11-03-23-30-15/muse-skill-video/vid.py",
+   "used_in": [
+    "muse-skill-video"
+   ],
+   "intent": "全片字幕条，关键词高亮",
+   "energy": "低",
+   "inputs": [
+    "text",
+    "timing"
+   ],
+   "params": "band_y, font_size, highlight_words",
+   "pitfalls": [
+    "按字数比例分配时间必然漂移，必须用句子级/字级时间码",
+    "合并两句时中间要补标点，否则读起来少一个逗号"
+   ],
+   "preview": null
+  },
+  {
+   "id": "paper_bg",
+   "title": "纸张底与报头",
+   "desc": "纸纹、暗角、报头分隔线、印章等基础版式",
+   "tags": [
+    "base",
+    "paper"
+   ],
+   "entry": null,
+   "baseline": null,
+   "status": "pending",
+   "ref": "WorkBuddy/2026-11-03-23-30-15/muse-skill-video/vid.py",
+   "used_in": [
+    "muse-skill-video"
+   ],
+   "intent": "报纸/纸张底，全片的基础版式",
+   "energy": "低",
+   "inputs": [],
+   "params": "paper_color, vignette, rules",
+   "pitfalls": [
+    "暗角过重建模会吃掉文字对比度"
+   ],
+   "preview": null
+  },
+  {
+   "id": "char_rise",
+   "title": "逐字升起",
+   "desc": "论点/金句：一句话逐字从下方升起",
+   "intent": "论点,金句",
+   "energy": "中",
+   "inputs": [
+    "文"
+   ],
+   "pitfalls": [
+    "stagger 逐字错峰；适合完整句，不适合长段"
+   ],
+   "params": "",
+   "tags": [
+    "论点",
+    "金句"
+   ],
+   "entry": "fx/text_pack.py:char_rise",
+   "baseline": "baselines/char_rise.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:00:00+08:00"
+  },
+  {
+   "id": "double_block_lines",
+   "title": "双色块对句",
+   "desc": "对比：两行对句各坐色块，从左刷出",
+   "intent": "对比,列举,论点",
+   "energy": "中",
+   "inputs": [
+    "文"
+   ],
+   "pitfalls": [
+    "两行必须句式对称，否则色块宽度不齐很难看"
+   ],
+   "params": "",
+   "tags": [
+    "对比",
+    "列举",
+    "论点"
+   ],
+   "entry": "fx/text_pack.py:double_block_lines",
+   "baseline": "baselines/double_block_lines.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:00:00+08:00"
+  },
+  {
+   "id": "blur_focus_in",
+   "title": "柔焦淡入",
+   "desc": "论点：整句从虚到实，像镜头对焦",
+   "intent": "论点,金句",
+   "energy": "低",
+   "inputs": [
+    "文"
+   ],
+   "pitfalls": [
+    "大字号模糊半径别超过字高 1/4，否则糊成块"
+   ],
+   "params": "",
+   "tags": [
+    "论点",
+    "金句"
+   ],
+   "entry": "fx/text_pack.py:blur_focus_in",
+   "baseline": "baselines/blur_focus_in.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:00:00+08:00"
+  },
+  {
+   "id": "marker_highlight",
+   "title": "荧光笔划重点",
+   "desc": "强调：在关键词上刷一道马克笔",
+   "intent": "强调,数据",
+   "energy": "中",
+   "inputs": [
+    "文"
+   ],
+   "pitfalls": [
+    "条要比行高窄，太宽会盖住上一行"
+   ],
+   "params": "",
+   "tags": [
+    "强调",
+    "数据"
+   ],
+   "entry": "fx/text_pack.py:marker_highlight",
+   "baseline": "baselines/marker_highlight.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:00:00+08:00"
+  },
+  {
+   "id": "count_up",
+   "title": "数字滚动",
+   "desc": "数据：数字从 0 滚到目标值",
+   "intent": "数据,对比",
+   "energy": "高",
+   "inputs": [
+    "文"
+   ],
+   "pitfalls": [
+    "数字位数变化会引起跳动，位数固定更稳"
+   ],
+   "params": "",
+   "tags": [
+    "数据",
+    "对比"
+   ],
+   "entry": "fx/text_pack.py:count_up",
+   "baseline": "baselines/count_up.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:00:00+08:00"
+  },
+  {
+   "id": "stamp_slam",
+   "title": "印章砸下",
+   "desc": "金句/结论：盖章式落定",
+   "intent": "金句,强调,结尾",
+   "energy": "高",
+   "inputs": [
+    "文"
+   ],
+   "pitfalls": [
+    "旋转角度别超过 10 度，多了像贴纸"
+   ],
+   "params": "",
+   "tags": [
+    "金句",
+    "强调",
+    "结尾"
+   ],
+   "entry": "fx/text_pack.py:stamp_slam",
+   "baseline": "baselines/stamp_slam.png",
+   "preview": null,
+   "status": "ready",
+   "used_in": [],
+   "updated_at": "2026-11-05T22:00:00+08:00"
+  }
+ ],
+ "note": "随仓库分发的效果库种子；本地库 ~/.reelforge/effects 优先"
+}
