@@ -42,6 +42,13 @@ KEY = [
 ]
 SUB_SKILLS = ["reelforge-writer", "reelforge-runner", "reelforge-duo", "reelforge-router"]
 
+# 路线文档：runner 的 SKILL.md 会引用它们，缺了等于「文档写了但 agent 读不到」
+SUB_FILES = [
+    "reelforge-runner/references/route-c-offline-film.md",
+    "reelforge-runner/references/route-b-eac-film.md",
+    "reelforge-runner/references/eac-bridge.md",
+]
+
 
 def md5(p: pathlib.Path) -> str:
     return hashlib.md5(p.read_bytes()).hexdigest()
@@ -72,6 +79,12 @@ def check_files() -> dict:
                 missing.append(f"{k}/SKILL.md")
             elif md5(s) != md5(d):
                 diff.append(f"{k}/SKILL.md")
+        for rel in SUB_FILES:
+            s, d = REPO / "skills" / rel, root / rel
+            if not d.exists():
+                missing.append(rel)
+            elif md5(s) != md5(d):
+                diff.append(rel)
         out[name] = {"ok": not missing and not diff, "missing": missing, "diff": diff}
     return out
 

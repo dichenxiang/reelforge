@@ -1,6 +1,6 @@
 ---
 name: reelforge-runner
-description: 按 web-video-presentation 流程把稿子做成 16:9 视频的执行 skill。负责 scaffold、章节代码、agent-teams 并行、step 级 TTS、录屏与 ffprobe 验收。用于「把这个 outline 做成网页视频」「跑 wvp」「把旁白合成进工程」这类任务。不改稿、不做审美决策。出片动效一律走统一效果库 `fx_pipeline.py plan/render`，不要手写，也不要在 runner 目录里找 effects.py。
+description: 按四条出片路线（A=wvp 录屏 / B=EAC film / C=Pillow 离线逐帧+FFmpeg / D=wvp+EAC 混合）把稿子做成 16:9 视频的执行 skill。负责 scaffold、章节代码或纯函数帧渲染、step 级 TTS、录屏/编码与 ffprobe 验收。用于「把这个 outline 做成网页视频」「跑 wvp」「把旁白合成进工程」这类任务。不改稿、不做审美决策。出片动效一律走统一效果库 `fx_pipeline.py plan/render`，不要手写，也不要在 runner 目录里找 effects.py。
 ---
 
 # ReelForge Runner
@@ -109,10 +109,14 @@ python <reelforge>/scripts/state.py set --work "$W" --meta render=A --meta templ
 |---|---|---|
 | A（默认） | wvp 章节 → `record_auto.mjs` 录屏 → `mix_timeline.py` 混音+字幕 | 口播驱动、50 拍以上、信息密度高 |
 | B | 一个确定性 `film.html`（`__seek(t)`）→ EAC `render-template` 逐帧渲染 | 30–90s、强动效、模板级视觉 |
+| **C** | Pillow 逐帧 → `rawvideo` → FFmpeg 编码 → 拼段混音（`make.py`/`sfx.py`/`finalize.py`） | 句子级严格对齐、录屏/截图混排、无浏览器/EAC |
+| D | wvp 主体 + EAC 风格层 + 1–2 个库动效（A 的增强） | 已有 wvp 工程、想立刻提质感 |
 
 - 有 EAC 插件：`python <runner>/scripts/eac_probe.py --json` 列模板/动效，让用户选模板与风格
-- 没插件：回 A，不要假装支持 B
+- 没 EAC：可选 A 或 **C**；不要假装支持 B/D。C 不需要 wvp vendor、浏览器或 EAC 插件
 - B 的契约、渲染命令、许可边界：`references/route-b-eac-film.md`
+- **C 的契约、命令序列、坑与验收：`references/route-c-offline-film.md`**
+- D（混合）：`references/eac-bridge.md`
 - 生成 B 的骨架：`python <runner>/scripts/film_from_beats.py --work "$W" --out "$W/film/film.html"`
 
 ### P0.6 配音方式与预设（必须问）
@@ -225,6 +229,18 @@ node <runner>/scripts/record_auto.mjs --url "http://127.0.0.1:4176/?auto=1" --du
 ```
 
 人工模式：打开 `?auto=1`，点一下开始，OBS 录；保留同步白块或用后续手工对轨。
+
+### P4' 离线逐帧（路线 C，无录屏）
+
+```bash
+cd "$W"
+python make.py        # 逐段纯函数帧渲染 → _build/seg/*.mp4 → concat → picture.mp4
+python sfx.py         # 由 timeline.json 的 marks/beats/sents 生成 sfx.wav
+python finalize.py    # picture + narration + sfx → 整片 libx264+AAC+faststart
+ffprobe -v error -show_entries format=duration:stream=codec_name,width,height,r_frame_rate -of default=nw=1 <成片.mp4>
+```
+
+唯一时间真相源是 `_build/timeline.json`（逐句 TTS 的 `start/dur`），字幕、气泡、音效全部由它推导；**禁止按字数估时**。帧渲染走 `-f rawvideo -pix_fmt rgb24 -r 30 -i -`；素材片段要给完整输入，用 `setpts=PTS+appear/TB` 做出场偏移，别裁短（会丢后面的素材）。细节与踩坑见 `references/route-c-offline-film.md`。
 
 ### P5 混音 + 字幕 + 验收
 

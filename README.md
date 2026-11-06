@@ -1,7 +1,7 @@
 # ReelForge
 
 **模块化的短视频生产流水线。** 流程拆成三部分——总控 / 写稿 / 执行——可以三个 agent 分工，也可以**一个 agent 全包**；交付物都是 16:9 的成片。
-出片有两条路线：**A** 网页章节 + 录屏（默认），**B** 确定性 HTML + EAC `__seek(t)` 逐帧渲染（可选）。
+出片有四条路线：**A** 网页章节 + 录屏（默认）、**B** 确定性 HTML + EAC `__seek(t)` 逐帧渲染、**C** Pillow 离线逐帧 + FFmpeg（无浏览器/EAC，实战验证）、**D** wvp 主体 + EAC 风格层混合。选完写进 `state`，不许把 C 说成 A 或 B；路线 C 契约见 `skills/reelforge-runner/references/route-c-offline-film.md`。
 
 不是「一句话生成视频」的黑盒。它把流程拆成可验收的四道门：
 
@@ -54,7 +54,7 @@ python skills/reelforge/scripts/pack_task.py writer --work work/demo
 # 把 work/demo/tasks/writer.md 交给写稿 agent；它开工前会先问：人设 / 目标 / 受众 / 素材
 ```
 
-稿子确认后再定四件事（路线 A/B、模板、配音方式/预设、字幕），再生成 runner 任务包：
+稿子确认后再定四件事（路线 A/B/C/D、模板、配音方式/预设、字幕），再生成 runner 任务包（C 不需要模板）：
 
 ```bash
 python skills/reelforge/scripts/pack_task.py runner --work work/demo --render A --template <id> --tts-provider indextts --tts-preset "<预设>" --subs burn

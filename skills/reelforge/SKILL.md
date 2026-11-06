@@ -1,6 +1,6 @@
 ---
 name: reelforge
-description: 模块化短视频生产流水线（总控/写稿/执行三部分，可一个 agent 全包）。总控（本 skill）负责拆解、状态机、参考度审计与验收；写稿交给 reelforge-writer（任意强写作模型，如 Gemini 4 Argon）；出片交给 reelforge-runner（任意能执行命令的编码 agent，如 DeepSeek Harness）。支持「完全自定义主题」和「参考片最多 60%、默认 40%」两种模式，五道门强制（风格→口播稿→样片→音频→成片），成片为 16:9（默认 wvp 章节+录屏；可选 EAC film `__seek(t)` 时间轴）。内置 33 个可运行动效与 232 张配方卡，用 fx_pipeline.py 按口播稿自动匹配动效并渲染片段（plan/render/emit/check）；凡是做视频、加动效、字幕动画、转场、数据图表、放大镜高亮，一律先查效果库，不要手写动效。
+description: 模块化短视频生产流水线（总控/写稿/执行三部分，可一个 agent 全包）。总控（本 skill）负责拆解、状态机、参考度审计与验收；写稿交给 reelforge-writer（任意强写作模型，如 Gemini 4 Argon）；出片交给 reelforge-runner（任意能执行命令的编码 agent，如 DeepSeek Harness）。支持「完全自定义主题」和「参考片最多 60%、默认 40%」两种模式，五道门强制（风格→口播稿→样片→音频→成片），成片为 16:9，四条出片路线：A=wvp 网页录屏 / B=EAC film `__seek(t)` / C=Pillow 离线逐帧+FFmpeg（实战验证）/ D=wvp+EAC 混合；选完必须写进 state，不许把 C 说成 A 或 B。内置 33 个可运行动效与 232 张配方卡，用 fx_pipeline.py 按口播稿自动匹配动效并渲染片段（plan/render/emit/check）；凡是做视频、加动效、字幕动画、转场、数据图表、放大镜高亮，一律先查效果库，不要手写动效。
 ---
 
 # ReelForge
@@ -14,7 +14,7 @@ description: 模块化短视频生产流水线（总控/写稿/执行三部分�
 |---|---|---|---|
 | 总控 | WorkBuddy / 任意编排 agent | `reelforge` | 拆解、组任务包、审计、验收、汇总 |
 | 写稿 | 强写作模型（默认 Antigravity `gemini-4-argon-medium`，低思考） | `reelforge-writer` | `script.md` / `script.json` |
-| 执行 | 编码 agent（默认 DeepSeek Harness，**官方来源** `deepseek-flash`＝V4.1 Flash，思考 max；可切 WorkBuddy 来源） | `reelforge-runner` | wvp 工程、章节、音频、录屏 |
+| 执行 | 编码 agent（默认 DeepSeek Harness，**官方来源** `deepseek-flash`＝V4.1 Flash，思考 max；可切 WorkBuddy 来源） | `reelforge-runner` | A/B/D 的 wvp 工程与录屏，或 C 的离线逐帧工程、音频、验收 |
 | 出图 | 任意图像能力 | — | 封面、图表、插图 |
 
 三部分通过**文件 + `state.json`** 协作；可以三个 agent 分工，也可以一个 agent 全包，只要读写同一份工作目录。
@@ -41,11 +41,11 @@ description: 模块化短视频生产流水线（总控/写稿/执行三部分�
 1  reference   可选：analyze.py 拆参考 → reference.json（结构/手法/禁用）
 2  script      pack_task.py writer → 写稿 agent → script.md / script.json
 3  audit       similarity.py（默认40，上限60）+ 🛑 script_gate 用户确认口播稿
-3.5 options    🛑 用户选：路线 A/B、配音方式/预设、字幕（模板已在 0.5 定）
+3.5 options    🛑 用户选：路线 A/B/C/D、配音方式/预设、字幕（模板已在 0.5 定）
 3.6 fxplan     fx_pipeline.py plan → shots.json（稿子自动配动效，人只否决）
 4  pilot       🛑 pilot_gate：先出 15–20 秒样片，用户看过再全篇
-5  build       make_wvp_inputs.py → pack_task.py runner → 执行 agent 跑 wvp
-6  record      人工 OBS 或 record.mjs
+5  build       选路线 → A/B/D 跑 wvp，C 跑 make.py 离线逐帧（见 route-c-offline-film.md）
+6  record      A=人工 OBS / record.mjs；B=EAC render-template；C=make.py+sfx.py+finalize.py 直接出片（无录屏）
 7  deliver     ffprobe 验收 → 🛑 final_gate → 交付 + state done
 ```
 
@@ -157,7 +157,7 @@ python scripts/make_wvp_inputs.py --work work/<slug>   # → outline.md / articl
 
 | 问题 | 选项 | 写进 state |
 |---|---|---|
-| 出片路线 | A=HTML 渲染+录屏；B=EAC film `__seek(t)` 时间轴 | `--meta render=A/B` |
+| 出片路线 | A=网页章节+录屏；B=EAC film `__seek(t)`；**C=Pillow 逐帧+FFmpeg（无浏览器/EAC）**；D=wvp+EAC 混合 | `--meta render=A/B/C/D` |
 | 模板/风格 | **已在 0.5 风格门定过**，这里只做复核 | `--meta template=<id>` |
 | 配音 | IndexTTS 预设 / 参考干声 / edge-tts / 自定义 | `--meta tts_provider=... --meta tts_preset=...` |
 | 字幕 | 烧录 / 外挂 SRT / 不要 | `--meta subs=burn/srt/none` |
@@ -165,7 +165,11 @@ python scripts/make_wvp_inputs.py --work work/<slug>   # → outline.md / articl
 问完再生成 runner 任务包：
 
 ```bash
+# A / B / D：wvp 或 EAC
 python scripts/pack_task.py runner --work work/<slug> --persona <id>   --render B --template motion-promo-film   --tts-provider indextts --tts-preset "<预设>" --subs burn
+
+# C：离线逐帧（不需要浏览器、EAC、模板）
+python scripts/pack_task.py runner --work work/<slug> --persona <id>   --render C   --tts-provider indextts --tts-preset "<预设>" --subs burn
 ```
 
 （`\` 只是文档里的换行，实际执行时写一行。）
@@ -250,6 +254,7 @@ work/<slug>/
     `fx_pipeline.py check` 全量自检；不许只留在项目目录，也不许只写文档不登记 `auto`。
 12. **时间只有一个真相源**：字幕/动效/音效共用同一份句子级时间码，禁止各自按比例估算。
 13. **改一处验一处**：改完抽一帧对比再说"好了"，不验像素不下结论。
+14. **路线不许说错**：工程里有 `rawvideo` / `make.py` / Pillow 逐帧就是 `--render C`，不许报成 A（网页录屏）或 B（EAC film）；选完写进 state，文档与实际执行必须一致。
 
 ## 常见故障
 
@@ -269,6 +274,7 @@ work/<slug>/
 | 自动配的动效文不对题 | 检查配方卡 `beats`/`auto` 是否登记；数据类准入门会拦掉没数据的句子 |
 | 文字首尾被切出画面 | 自动匹配塞了整句原文；文本效果必须走 `_fit_font` 自动缩字号 |
 | 录屏没声音 | Playwright 不录系统声；用 `mix_audio.py` 拼轨后 `--audio`，或人工 OBS |
+| 被问「用的 A 还是 B」答不上来 | 查工程：有 `rawvideo`/`make.py`/Pillow 就是 **C**；见 `route-c-offline-film.md` |
 
 ## 参考
 
@@ -281,6 +287,7 @@ work/<slug>/
 | `references/tts.md` | IndexTTS 服务与 provider |
 | `references/gates.md` | 五道门：时机、产物、验收卡模板 |
 | `references/effects-library.md` | 效果库：配方卡契约、自动匹配、流水线接入、回归 |
+| `reelforge-runner/references/route-c-offline-film.md` | **路线 C**：离线逐帧管线、命令、坑、验收（本片实战） |
 | `scripts/fx_pipeline.py` | 稿子 → 镜头表 → 片段（`plan/render/emit/check/preview`） |
 | `effects/runtime.py` | 项目侧渲染接缝（`render_frame` / `render_clip` / `ffmpeg_bin`） |
 | `references/pitfalls.md` | 踩坑清单（硬规则，开工前必读） |

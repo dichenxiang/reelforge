@@ -2,7 +2,7 @@
 
     python -m pytest -q tests
 
-覆盖：状态机、任务包、混音时间轴纯函数、路线 B film 生成、preflight JSON。
+覆盖：状态机、任务包、混音时间轴纯函数、路线 B film 生成、路线 C 登记、preflight JSON。
 """
 from __future__ import annotations
 
@@ -71,6 +71,27 @@ def test_pack_runner_options(tmp_path: Path):
     assert "出片路线：B" in text
     assert "preset=demo" in text
     assert "字幕：burn" in text
+
+
+def test_pack_runner_route_c(tmp_path: Path):
+    """路线 C 必须能被选中、写进任务包、并指向离线逐帧契约。"""
+    work = tmp_path / "w"
+    run_py(SCRIPTS / "state.py", "init", "--work", str(work), "--title", "t")
+    run_py(SCRIPTS / "pack_task.py", "runner", "--work", str(work),
+           "--render", "C", "--tts-provider", "edge", "--subs", "burn")
+    text = (work / "tasks" / "runner.md").read_text(encoding="utf-8")
+    assert "出片路线：C" in text
+    assert "python make.py" in text and "finalize.py" in text
+    assert "route-c-offline-film.md" in text
+    assert "C=Pillow" in text
+
+
+def test_route_c_contract_exists():
+    doc = ROOT / "skills" / "reelforge-runner" / "references" / "route-c-offline-film.md"
+    assert doc.exists()
+    body = doc.read_text(encoding="utf-8")
+    for key in ("rawvideo", "timeline.json", "finalize.py", "pilot_gate", "setpts"):
+        assert key in body, f"路线 C 契约缺少 {key}"
 
 
 def test_mix_timeline_helpers():

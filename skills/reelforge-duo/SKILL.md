@@ -46,8 +46,8 @@ trio 与 duo **共用同一套脚本和同一套门槛**，只是「谁来派活
 | 1 | 执行 | `duo.py handoff --work work/x` 生成给写稿 agent 的交接稿 | — |
 | 2 | 人 | 把交接稿粘给 Antigravity，它产出 `script.md` + `script.json`，放回 `work/x/` | — |
 | 3 | 执行 | `duo.py intake --work work/x` → 相似度审计 → 超 60 就退回重写 | 🛑 你确认口播稿 |
-| 3.5 | 执行 | 问路线 A/B、模板风格、配音方式/预设、字幕；写进 state | 🛑 你拍板 |
-| 4 | 执行 | 按选定路线：A=wvp 章节/录屏；B=EAC film 时间轴 → 第 1 章/首段 | 🛑 你验收第 1 章 |
+| 3.5 | 执行 | 问路线 A/B/C/D、模板风格、配音方式/预设、字幕；写进 state | 🛑 你拍板 |
+| 4 | 执行 | 按选定路线：A=wvp 章节/录屏；B=EAC film 时间轴；C=离线逐帧 make.py；D=wvp+EAC 混合 → 第 1 章/首段 | 🛑 你验收第 1 章 |
 | 5 | 执行 | extract → 选定 TTS 预设合成 → 录屏 → 混音+字幕 | 🛑 你验收音频 |
 | 6 | 执行 | ffprobe 验收 → 交付 | 🛑 你验收成片 |
 
@@ -69,7 +69,7 @@ python <reelforge>/scripts/personas_init.py
 
 | 问题 | 选项 |
 |---|---|
-| 路线 | A=HTML 渲染+录屏 / B=EAC `__seek(t)` 时间轴 |
+| 路线 | A=网页录屏 / B=EAC `__seek(t)` / C=Pillow 逐帧+FFmpeg / D=wvp+EAC 混合 |
 | 模板/风格 | `eac_probe.py` 列出来给用户选；没装 EAC 就回 A |
 | 配音 | IndexTTS 预设 / 参考干声 / edge-tts / 自定义 |
 | 字幕 | 烧录 / 外挂 SRT / 不要 |

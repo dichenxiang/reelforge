@@ -15,13 +15,17 @@ id、category、energy、duration、recipe、recommended、license）。
 
 `installed=false` → 安静回退纯 wvp，不要报错，也不要编造“已接入”。
 
-## 1. 三条出片路线（先选路线，再动手）
+## 1. 四条出片路线（先选路线，再动手）
+
+> 全仓库统一编号：**A**=wvp 录屏 / **B**=EAC film / **C**=离线逐帧（Pillow+FFmpeg）/ **D**=wvp+EAC 混合。
+> 本文早期把「混合」叫 C，现统一改为 **D**；C 归离线逐帧，见 `route-c-offline-film.md`。
 
 | 路线 | 用什么 | 适合 | 代价 |
 |---|---|---|---|
 | **A. wvp 逐拍**（默认） | wvp 章节 + 逐拍 IndexTTS + 整页录屏 | 口播驱动、信息密度高、50 拍以上 | 动效受 CSS 限制 |
 | **B. EAC film** | `motion-promo-film/templates/film-template.html` + `__seek(t)` 逐帧渲染 | 30–90s 强动效单片、电影感 | 要重写时间轴；节拍与旁白要预排 |
-| **C. 混合**（推荐先试） | wvp 主体 + EAC 风格层 + 1–2 个库动效 | 已有 wvp 工程、想立刻提升质感 | 改动小，不破坏逐拍同步 |
+| **C. 离线逐帧** | Pillow 画帧 → `rawvideo` → FFmpeg 编码 → 拼段混音 | 句子级严格对齐、录屏/截图混排、无浏览器/EAC | 动效要写 Python 纯函数；超长片慢 |
+| **D. 混合**（推荐先试） | wvp 主体 + EAC 风格层 + 1–2 个库动效 | 已有 wvp 工程、想立刻提升质感 | 改动小，不破坏逐拍同步 |
 
 路线 B 的命令（EAC 会话内）：
 
@@ -31,7 +35,7 @@ eac_template_read templateId=motion-promo-film source=true
 eac_job_submit type=render-template params={ htmlPath, audioPath, duration, fps:30, templateId:"motion-promo-film" }
 ```
 
-## 2. 风格层（路线 C 的最小落地）
+## 2. 风格层（路线 D 的最小落地）
 
 取 `vendor/motion-promo-film/STYLE.md` 的两件事，不要整套照搬：
 
@@ -69,7 +73,7 @@ eac_job_submit type=render-template params={ htmlPath, audioPath, duration, fps:
 
 ## 4. 融合检查单
 
-- [ ] `eac_probe.py --json` 已生成，路线写进汇报（A / B / C）
+- [ ] `eac_probe.py --json` 已生成，路线写进汇报（A / B / C / D）
 - [ ] 风格层变量来自主题，不是硬编码色值
 - [ ] 库动效 ≤2 个，且写清来源 recipe id
 - [ ] `npx tsc --noEmit` / `npm run build` 通过

@@ -201,10 +201,11 @@ def runner_pack(a) -> str:
 1. {SKILLS_ROOT / 'reelforge-runner' / 'SKILL.md'}
 2. {SKILL / 'vendor' / 'web-video-presentation' / 'SKILL.md'}（Phase 2–4）
 3. {SKILL / 'vendor' / 'web-video-presentation' / 'references' / 'CHAPTER-CRAFT.md'}
+4. 路线 C 必读：{SKILLS_ROOT / 'reelforge-runner' / 'references' / 'route-c-offline-film.md'}
 
 ## 参数（**没填的先问用户，别自己定**）
 - 主题/视觉：{a.theme or '未指定 → 按 outline 推荐 2–3 个主题让用户选'}
-- 出片路线：{a.render}（A=HTML 渲染+录屏；B=EAC `motion-promo-film` 的 `__seek(t)` 时间轴）
+- 出片路线：{a.render}（A=网页章节+录屏；B=EAC `__seek(t)`；C=Pillow 逐帧+FFmpeg 离线出片；D=wvp+EAC 混合）
 - 模板/风格：{a.template or '未指定 → 用 eac_probe.py 列模板，让用户选'}
 - 人设音色：{a.persona or '未指定 → 列 personas 让用户选'}
 - TTS：provider={a.tts_provider or '未指定（edge / indextts / custom）'}，preset={a.tts_preset or '未指定（列预设让用户选）'}
@@ -212,7 +213,7 @@ def runner_pack(a) -> str:
 - 团队：{'用 /agent-teams，第 2..N 章每章一个 task' if a.team else '不开团队'}
 
 ## 开工前先确认（按顺序，缺一不可）
-1. 路线 A/B 与模板/风格（路线 B 需要装 EAC 插件；没装就回 A）
+1. 路线 A/B/C/D 与模板/风格（B/D 需要 EAC 插件；C 不需要浏览器/EAC，用离线逐帧）
 2. 配音方式与预设（有 IndexTTS 就列预设；没有就问 edge 音色或用户自己的录音）
 3. 字幕：烧录 / 外挂 / 不要
 4. 画幅与时长上限
@@ -224,7 +225,10 @@ def runner_pack(a) -> str:
 4. `npm run extract-narrations` → 按确认的 provider/preset 合成音频
    （IndexTTS：`PRESENTATION_TTS=indextts TTS_PERSONA=<id> TTS_PRESET=<预设> npm run synthesize-audio`）
 5. 音频完成 → **停**，写 `state.py gate --name audio_gate`
-6. 录屏：`node scripts/record_auto.mjs --url ... --out out/raw.webm`
+6. 出片（按路线）：
+   - A/D：录屏 `node scripts/record_auto.mjs --url ... --out out/raw.webm`
+   - B：EAC `render-template` 逐帧渲染 film.html
+   - C：离线逐帧 `python make.py` → `python sfx.py` → `python finalize.py`（**无录屏**，见 route-c-offline-film.md）
 7. 混音+字幕：`python scripts/mix_timeline.py --raw out/raw.webm --timeline out/raw.timeline.json --segments audio-segments.json --audio-dir public/audio --out out/final.mp4 --burn --srt out/final.srt`
 8. ffprobe + 抽帧验收 → `state.py set --stage qa --status done`
 
@@ -251,10 +255,11 @@ def main() -> int:
     p = sub.add_parser("runner")
     p.add_argument("--work", required=True)
     p.add_argument("--theme", default="")
-    p.add_argument("--mode", default="A", choices=["A", "B", "C"])
+    p.add_argument("--mode", default="A", choices=["A", "B", "C", "D"])
     p.add_argument("--persona", default="")
     p.add_argument("--team", action="store_true")
-    p.add_argument("--render", default="A", choices=["A", "B"], help="A=HTML渲染录屏 / B=EAC film __seek 时间轴")
+    p.add_argument("--render", default="A", choices=["A", "B", "C", "D"],
+                    help="A=wvp录屏 / B=EAC film / C=Pillow逐帧+FFmpeg / D=wvp+EAC混合")
     p.add_argument("--template", default="", help="模板/风格 id（route B 或 A 的风格层）")
     p.add_argument("--tts-provider", default="", help="edge / indextts / custom，空=问用户")
     p.add_argument("--tts-preset", default="", help="IndexTTS 预设名或 edge 音色，空=问用户")

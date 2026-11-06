@@ -1,7 +1,8 @@
 # 路线 B：EAC film（`__seek(t)` 时间轴）出片
 
-> 路线 A 是「wvp 章节 + 录屏」；路线 B 是「整片一个确定性 HTML，按 t 逐帧渲染」。
-> 两条路线的交付物相同：MP4 + SRT + 工程。
+> 全仓库统一编号：**A**=wvp 章节+录屏；**B**=整片一个确定性 HTML，按 t 逐帧渲染（本文）；
+> **C**=Pillow 离线逐帧 + FFmpeg（见 `route-c-offline-film.md`）；**D**=wvp+EAC 混合（见 `eac-bridge.md`）。
+> 四条路线的交付物相同：MP4 + SRT + 工程；选完写进 `state`，不许把 C 说成 A 或 B。
 
 ## 什么时候选 B
 

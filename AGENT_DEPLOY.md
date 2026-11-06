@@ -17,7 +17,7 @@
 | 模式 | 否 | `trio`（无人值守）/ `duo`（人在电脑前）；默认 trio |
 | 人设信息 | **是** | 见 §2 问卷，一次问完 |
 | 配音条件 | 否 | 有 IndexTTS 就克隆，没有就 edge-tts |
-| EAC 剪辑插件 | 否 | 装了才支持路线 B（`__seek(t)` 成片） |
+| EAC 剪辑插件 | 否 | 装了才支持路线 B（`__seek(t)` 成片）与 D（混合）；**路线 C 不需要** |
 
 ---
 
@@ -67,7 +67,7 @@ python --version; node -v; npm -v; jq --version; ffmpeg -version | head -1; git 
    b. edge-tts（免费、无需 GPU）
    c. 我自己的 10–20 秒干声（给路径）
    d. 自定义命令（接 OpenAI 兼容 / ElevenLabs 等）
-4) 装没装 EAC design world 剪辑插件？（有 → 可选路线 B：motion-promo-film 时间轴）
+4) 装没装 EAC design world 剪辑插件？（有 → 可选路线 B：motion-promo-film 时间轴；没装 → 可选 A 或 C）
 5) 用 trio（无人值守）还是 duo（你在电脑前拍板）？
 ```
 
@@ -88,7 +88,7 @@ bash install.sh --dsh --claude --codex --workbuddy --antigravity --with-wvp
 - 装完会打印**依赖体检**；不通过先按提示补，别往下走。
 - 没有 skills 机制的 agent：把 `skills/reelforge*/SKILL.md` 的要点追加到项目 `AGENTS.md`，脚本仍可调用。
 
-> 离线/克隆失败：下载 zip 解压后用同样目录；wvp 拉不下来时先跳过，路线 A 会提示缺 vendor。
+> 离线/克隆失败：下载 zip 解压后用同样目录；wvp 拉不下来时先跳过，路线 A 会提示缺 vendor；**路线 C 不需要 wvp vendor**。
 
 ---
 
@@ -182,9 +182,9 @@ python skills/reelforge/scripts/tts_once.py --text "这是一条旁白测试" --
 python skills/reelforge-runner/scripts/eac_probe.py --json > /tmp/eac-pack.json
 ```
 
-- 有 EAC：把模板列表给用户选（默认 `motion-promo-film`），路线 A/B 二选一；
-  路线 B 细节见 `skills/reelforge-runner/references/route-b-eac-film.md`。
-- 没有 EAC：只支持路线 A，**不要声称支持 B**。
+- 有 EAC：把模板列表给用户选（默认 `motion-promo-film`），路线 **A/B/C/D 四选一**；
+  路线 B 细节见 `route-b-eac-film.md`，路线 C 见 `route-c-offline-film.md`，D 见 `eac-bridge.md`。
+- 没有 EAC：可选 **A 或 C**；**不要声称支持 B/D**。
 
 记录到项目状态：`state.py set --work <work> --meta render=A --meta template=<id>`。
 
@@ -241,7 +241,7 @@ skill：总控 <path> · 写稿 <path> · 执行 <path> · duo <是/否>
 wvp：<路径/主题数>
 人设：<id/显示名/数量>（默认 <id>）
 配音：<provider + preset/音色>；试听 /tmp/probe.mp3
-路线：<A/B>；模板：<id 或 无>
+路线：<A/B/C/D>；模板：<id 或 无（C 不需要）>
 校验：preflight <ok> · scaffold <ok> · writer 任务 <ok> · 5s 录屏 <ok>
 待用户补：<无 / 具体项>
 第一条片子：

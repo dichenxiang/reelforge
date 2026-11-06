@@ -44,6 +44,17 @@ reference:
   target: 40                   # 默认参考度
   max: 60                      # 硬上限，超了必须重写
 
+# 出片路线：选完写进 state（--meta render=...），文档与实际执行必须一致
+# A=wvp 网页章节+录屏 | B=EAC film __seek(t) | C=Pillow 离线逐帧+FFmpeg | D=wvp+EAC 混合
+# C 不需要浏览器 / wvp vendor / EAC 插件；契约见 reelforge-runner/references/route-c-offline-film.md
+routes:
+  default: A
+  available: [A, B, C, D]
+  C:
+    entry: [make.py, sfx.py, finalize.py]
+    timeline: _build/timeline.json      # 唯一时间真相源
+    contract: reelforge-runner/references/route-c-offline-film.md
+
 video:
   aspect: "16:9"               # wvp 固定 1920×1080
   fps: 30

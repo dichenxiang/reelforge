@@ -68,4 +68,16 @@ python tests/verify_agents.py --smoke    # 额外逐个在空本地库 + 独立 
 
 任一目录缺失 / 版本不一致 / 冒烟失败，退出码非 0。这个校验就是「换 agent 不丢库」的回归测试，改完效果库或同步完必须跑。
 
+## 7. 出片路线统一编号（选完写进 state，别混着说）
+
+| 路线 | 做法 | 前提 |
+|---|---|---|
+| A | wvp 网页章节 + `record_auto.mjs` / OBS 录屏 | 浏览器 + wvp vendor |
+| B | EAC film，整片一个 `__seek(t)` 的 `film.html` | EAC design world 插件 |
+| **C** | **Pillow 离线逐帧 → `rawvideo` → FFmpeg 编码 → 拼段混音（无录屏）** | Python + Pillow + FFmpeg |
+| D | wvp 主体 + EAC 风格层 + 少量库动效（A 的增强） | A 工程 + EAC 模板 |
+
+`--meta render=A/B/C/D`；路线 C 契约见 `reelforge-runner/references/route-c-offline-film.md`，B 见 `route-b-eac-film.md`，D 见 `eac-bridge.md`。
+**不许把 C 说成 A 或 B**：工程里有 `make.py` / `rawvideo` / Pillow 逐帧就是 C。旧版 `eac-bridge.md` 曾把「混合」叫 C，现已统一改为 D。
+
 GitHub：`https://github.com/dichenxiang/reelforge`（`skills/` 为分发源）。

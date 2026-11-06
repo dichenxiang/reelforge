@@ -1,6 +1,6 @@
 ---
 name: reelforge-router
-description: 用户要做/改短视频、产品宣传片、口播视频、知识视频，或把文章/主题/参考片做成视频时，先读这个技能。它把任务路由到 reelforge（流水线，可单 agent 全包）、reelforge-duo（人在前）、reelforge-writer（只写稿）、reelforge-runner（只出片），并强制先问四件事：人设、路线 A/B、配音方式、字幕交付。
+description: 用户要做/改短视频、产品宣传片、口播视频、知识视频，或把文章/主题/参考片做成视频时，先读这个技能。它把任务路由到 reelforge（流水线，可单 agent 全包）、reelforge-duo（人在前）、reelforge-writer（只写稿）、reelforge-runner（只出片），并强制先问四件事：人设、路线 A/B/C/D、配音方式、字幕交付。
 ---
 
 # ReelForge 路由（先读我）
@@ -26,7 +26,7 @@ python <skills>/reelforge-runner/scripts/preflight.py
 ## 2. 强制先问（缺一不可，别默认）
 
 1. **用哪个人设**：`personas.py --list` 列出来让用户选；没有就 `personas_init.py` 建，**不要预设“阿测/学长”**
-2. **出片路线**：A = 网页章节 + 录屏（默认）；B = EAC `motion-promo-film` 的 `__seek(t)` 时间轴（需装 EAC 插件）
+2. **出片路线**：A = 网页章节 + 录屏（默认）；B = EAC `motion-promo-film` 的 `__seek(t)` 时间轴（需 EAC 插件）；**C = Pillow 离线逐帧 + FFmpeg（无浏览器/EAC，见 `route-c-offline-film.md`）**；D = wvp 主体 + EAC 风格层混合
 3. **配音**：IndexTTS 预设 / 参考干声 / edge-tts / 自定义；有 IndexTTS 先 `tts_once.py --list-presets` 让用户选
 4. **字幕**：烧录 / 外挂 SRT / 不要（默认烧录）
 
@@ -38,14 +38,14 @@ python <skills>/reelforge-runner/scripts/preflight.py
 ```
 state init → pack_task writer → 写稿 agent → similarity 审计 → 🛑 script_gate
 → 选路线/模板/配音/字幕 → pack_task runner → 第 1 章/首段 → 🛑 chapter_gate
-→ 音频 → 🛑 audio_gate → 录屏/混音/字幕 → ffprobe + 抽帧 → 🛑 final_gate
+→ 音频 → 🛑 audio_gate → 按路线录屏或逐帧编码/混音/字幕 → ffprobe + 抽帧 → 🛑 final_gate
 ```
 
 - 写稿 agent 开工前必须问：人设 / 目标 / 受众 / 素材
 - 关键画面拿不到时，先判断能否公开检索；**能搜到的不麻烦用户**，只能实拍/录屏的才向用户要，并给替代方案
 - 真实产品操作必须录屏；示意图要标注“示意”
 
-## 4. 出片工具（路线 A）
+## 4. 出片工具（路线 A / C）
 
 ```bash
 # 用生产构建录屏（不要用 dev server）
@@ -53,7 +53,9 @@ node <skills>/reelforge-runner/scripts/record_auto.mjs --url "http://127.0.0.1:4
 python <skills>/reelforge-runner/scripts/mix_timeline.py --raw out/raw.webm --timeline out/raw.timeline.json --segments audio-segments.json --audio-dir public/audio --out out/final.mp4 --burn --srt out/final.srt
 ```
 
-路线 B 读 `<skills>/reelforge-runner/references/route-b-eac-film.md`。
+路线 C：`cd "$W" && python make.py && python sfx.py && python finalize.py`，**不录屏**，唯一时间真相源是 `timeline.json`；
+读 `<skills>/reelforge-runner/references/route-c-offline-film.md`。
+路线 B 读 `route-b-eac-film.md`，路线 D 读 `eac-bridge.md`。
 
 ## 5. 红线
 

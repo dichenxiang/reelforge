@@ -37,7 +37,7 @@ python skills/reelforge/scripts/pack_task.py writer --work work/demo
 
 | 选项 | 取值 | 例子 |
 |---|---|---|
-| 路线 | A=网页章节+录屏；B=EAC `__seek(t)` 时间轴 | A |
+| 路线 | A=网页章节+录屏；B=EAC `__seek(t)`；C=Pillow 逐帧+FFmpeg（无浏览器/EAC）；D=wvp+EAC 混合 | A |
 | 模板/风格 | `eac_probe.py` 列出的 id；没有 EAC 就不填 | `motion-promo-film` |
 | 配音 | IndexTTS 预设 / 参考干声 / edge-tts / 自定义 | `indextts` + `有感情青年音` |
 | 字幕 | 烧录 / 外挂 SRT / 不要 | 烧录 |
@@ -54,7 +54,8 @@ python skills/reelforge/scripts/pack_task.py runner --work work/demo \
 ```
 work/demo/
   script.md / script.json / outline.md   # 稿子
-  presentation/                          # 工程（路线 A）
+  presentation/                          # 工程（路线 A / B / D）
+  make.py vid.py sfx.py finalize.py       # 工程（路线 C，离线逐帧，无录屏）
   out/final.mp4 / final.srt              # 成片 + 字幕
   state.json                             # 状态与门
 ```
